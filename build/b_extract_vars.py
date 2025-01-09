@@ -4,6 +4,9 @@ import pandas
 
 with open(os.path.join(os.getcwd(),"components.json"),"r") as f:
     js = json.load(f)
+    
+# _getattr_
+# preload with None
 
 var_dict={"variable":[], "description":[], "type":[],"value":[]}
 
@@ -19,7 +22,7 @@ def parse_object(page_object, var_dict):
     else:
         var_dict["type"].append(None)
     if "text" in page_object:
-        var_dict["value"].append(page_object["text"])
+        var_dict["value"].append(page_object["text"].strip().strip("\r").strip("\t").replace("\n", ""))
     else:
         var_dict["value"].append(None)
     if "children" in page_object:
