@@ -104,3 +104,8 @@ for component in component_dict:
 # Update the CustomStep object with the new ui field
 cs.__dict__["ui"] = json.dumps(js)
 cs.create_custom_step(custom_step_path="/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step")
+
+# Replace the existing components.json file with js
+components_json_path = "/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/build/components.json"
+with open(components_json_path, 'w') as f:
+    json.dump(js, f, indent=4)
