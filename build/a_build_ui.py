@@ -1,8 +1,18 @@
 import os
 import json
 from py_sas_studio_custom_steps import CustomStep
+from datetime import datetime
 
-cs = CustomStep()
+createdBy="Sundaresh Sankaran"
+modifiedBy="Sundaresh Sankaran"
+
+
+cs = CustomStep(type="code",createdBy="Sundaresh Sankaran", 
+              name="LLM - Azure OpenAI Zero-Shot Prompting",
+              displayName="LLM - Azure OpenAI Zero-Shot Prompting",
+              creationTimeStamp=datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+              modifiedBy="Sundaresh Sankaran",
+              modifiedTimeStamp=datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
 with open(os.path.join(os.getcwd(),"components.json"),"r") as f:
     js = json.load(f)
