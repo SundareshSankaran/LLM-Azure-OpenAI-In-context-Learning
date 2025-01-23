@@ -16,11 +16,7 @@ def compare_strings_ignore_spaces(str1, str2):
     str2_clean = ''.join(str2.split())
     return str1_clean == str2_clean
 
-
-
-
 # Given a nested json , create a function which provides all objects nested wihin layers of the 
-
 
 # Create a Python dict from a tsv file
 def tsv_to_dict(tsv_file_path):
@@ -79,7 +75,6 @@ def find_nested_ids(js, key="id"):
 for component in component_dict:
     variable = component.get("variable")
     value = component.get("value")
-    print(f"Searching for value in variable {variable}")
     for id_value in find_nested_ids(js):
         if id_value == variable:
             for item in traverse_nested_json(js["pages"]):
@@ -90,17 +85,13 @@ for component in component_dict:
                         label = item["text"]
                     else:
                         label=""
-                    if label and compare_strings_ignore_spaces(label,value)==True:
-                        print(f"No change detected for {variable}")
                     if label and compare_strings_ignore_spaces(label,value)==False:
                         print("Change detected, updating")
                         if "label" in item:
                             item["label"]=value
                         elif "text" in item:
                             item["text"] = value
-                        print("Updated")
-
-
+                    
 # Update the CustomStep object with the new ui field
 cs.__dict__["ui"] = json.dumps(js)
 cs.create_custom_step(custom_step_path="/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step")

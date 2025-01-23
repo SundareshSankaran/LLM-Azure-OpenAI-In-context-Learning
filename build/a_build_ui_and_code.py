@@ -2,7 +2,7 @@ import os
 import json
 from py_sas_studio_custom_steps import CustomStep
 
-cs = CustomStep(type="code")
+cs = CustomStep(type="code", name="LLM - Azure OpenAI Zero-Shot Prompting", displayName="LLM - Azure OpenAI Zero-Shot Prompting")
 
 with open(os.path.join(os.getcwd(),"components.json"),"r") as f:
     js = json.load(f)
