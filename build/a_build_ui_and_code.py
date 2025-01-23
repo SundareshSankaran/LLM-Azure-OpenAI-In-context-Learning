@@ -11,7 +11,7 @@ jsd = json.dumps(js)
 
 cs["ui"]=jsd
 
-with open(os.path.join(os.getcwd(),"LLM - Azure OpenAI Zero-Shot Prompting.sas")) as sas_f:
+with open(os.path.join(os.getcwd(),"..","extras","LLM - Azure OpenAI Zero-Shot Prompting.sas")) as sas_f:
     sas_code_obj={"SAS":sas_f.read()}
 
 cs["templates"]=sas_code_obj
