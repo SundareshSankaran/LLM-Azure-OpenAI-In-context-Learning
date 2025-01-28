@@ -6,8 +6,8 @@ from py_sas_studio_custom_steps import CustomStep
 
 cs = CustomStep()
 
-cs.load_step_file(custom_step_file="/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step")
-
+cs.load_step_file(custom_step_file=os.path.join(os.getcwd(),"..","LLM - Azure OpenAI In-context Learning.step"))
+# "/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step"
 js=json.loads(cs.__dict__["ui"])
 
 # Write a Python function to compare two long strings on their values but ignore spaces in between
@@ -103,9 +103,9 @@ for component in component_dict:
 
 # Update the CustomStep object with the new ui field
 cs.__dict__["ui"] = json.dumps(js)
-cs.create_custom_step(custom_step_path="/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step")
+cs.create_custom_step(custom_step_path= os.path.join(os.getcwd(),"..","LLM - Azure OpenAI In-context Learning.step"))
 
 # Replace the existing components.json file with js
-components_json_path = "/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/build/components.json"
+components_json_path = os.path.join(os.getcwd(), "components.json")
 with open(components_json_path, 'w') as f:
     json.dump(js, f, indent=4)
