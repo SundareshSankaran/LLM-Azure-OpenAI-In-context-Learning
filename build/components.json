@@ -91,19 +91,19 @@
                                     "visible": ""
                                 },
                                 {
-									"id": "userExample",
-									"type": "textarea",
-									"label": "Provide illustrative example(s):",
-									"placeholder": "",
-									"required": false,
-									"visible": ""
-								},
-								{
-									"id": "text_user_example",
-									"type": "text",
-									"text": "Use the user example to provide 0, 1, or more illustrative examples of context and desired response from the LLM.",
-									"visible": ""
-								}
+				"id": "userExample",
+				"type": "textarea",
+				"label": "Provide illustrative example(s):",
+				"placeholder": "",
+				"required": false,
+				"visible": ""
+				},
+				{
+				"id": "text_user_example",
+				"type": "text",
+				"text": "Use the user example to provide 0, 1, or more illustrative examples of context and desired response from the LLM.",
+				"visible": ""
+				}
                             ]
                         }
                     ]
