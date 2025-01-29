@@ -60,14 +60,14 @@
 
 *------------------------------------------------------------------------------------------*/
 
-filename smtcode temp;
+filename azpcode temp;
 
 data _null_;
 
    length line $32767;               * max SAS character size ;
    infile datalines4 truncover pad;
    input ;   
-   file smtcode;
+   file azpcode;
    line = strip(_infile_);           * line without leading and trailing blanks ;
    l1 = length(trimn(_infile_));     * length of line without trailing blanks ;
    l2 = length(line);                * length of line without leading and trailing blanks ;
@@ -77,6 +77,82 @@ data _null_;
 
    datalines4;
 
+############################################################################################################
+#   Functions
+############################################################################################################
+
+def get_client(endpoint = None, api_key = None, api_version = None):
+    from openai import AzureOpenAI
+    import os
+    if endpoint is None:
+        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"] 
+    if api_key is None:
+        api_key = os.environ["AZURE_OPENAI_API_KEY"] 
+    if api_version is None:
+        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
+
+    client = AzureOpenAI( api_key = api_key,  api_version = api_version, azure_endpoint = endpoint)
+    return client
+
+def get_prompt(system_prompt = None, user_prompt = None, context = None):
+    if system_prompt is None:
+        system_prompt = "You are a helpful assistant. For each call, use provided context (Context:) to answer a provided question (Question:) in a concise manner.  Return only the answer."
+    if user_prompt is None:
+        user_prompt = "Echo whatever is provided as context."
+    if context is None:
+        context = "Echo"
+    return [
+    {
+        "role": "system",
+        "content": system_prompt
+    },
+    {
+        "role": "user",
+        "content": f"Question: {user_prompt}. Context: {context}" 
+    }
+    ]
+
+def call_llm(prompt = None, client = None, deployment = deployment_name, temperature = temperature):
+    if prompt is None:
+        prompt = get_prompt()
+    if client is None:
+        client = get_client()
+    if deployment is None:
+        deployment = os.environ["DEPLOYMENT_NAME"]
+    if temperature is None:
+        temperature = 0.7
+    completion = client.chat.completions.create(
+        model = deployment,
+        messages = prompt,
+        temperature = temperature
+    )  
+    return completion.choices[0].message.content
+
+def execute(context = None, user_prompt=None, system_prompt= None):
+    prompt = get_prompt(context = context, user_prompt = user_prompt, system_prompt = system_prompt)
+    client = get_client()
+    return call_llm(prompt = prompt, client = client)
+
+############################################################################################################
+#   Execution code
+############################################################################################################
+
+# Obtain values from UI
+
+input_data_ref = SAS.symget('inputData')
+input_data = SAS.sd2df(input_data_ref)
+
+text_column = SAS.symget('textCol')
+user_prompt = SAS.symget('userPrompt')
+system_prompt = SAS.symget('systemPrompt')
+temperature = SAS.symget('temperature')
+deployment_name = SAS.symget('genModelDeployment')
+api_key = SAS.symget('azureKeyLocation')
+api_version = SAS.symget('openAIVersion')
+endpoint = SAS.symget('azureOpenAIEndpoint')
+
+
+input_data["response"] = input_data[text_column].apply(execute, user_prompt = user_prompt, system_prompt = system_prompt)
    ;;;;
 run;   
 
