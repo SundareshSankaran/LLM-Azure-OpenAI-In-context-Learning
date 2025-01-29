@@ -153,7 +153,8 @@ endpoint = SAS.symget('azureOpenAIEndpoint')
 
 
 input_data["response"] = input_data[text_column].apply(execute, user_prompt = user_prompt, system_prompt = system_prompt)
-   ;;;;
+
+;;;;
 run;   
 
 /*-----------------------------------------------------------------------------------------*
