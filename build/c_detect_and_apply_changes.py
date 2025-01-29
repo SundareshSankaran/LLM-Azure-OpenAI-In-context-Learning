@@ -7,7 +7,6 @@ from py_sas_studio_custom_steps import CustomStep
 cs = CustomStep()
 
 cs.load_step_file(custom_step_file=os.path.join(os.getcwd(),"..","LLM - Azure OpenAI In-context Learning.step"))
-# "/Users/sinsrn/current_projects/LLM-Azure-OpenAI-Zero-Shot/LLM - Azure OpenAI Zero-Shot Prompting.step"
 js=json.loads(cs.__dict__["ui"])
 
 # Write a Python function to compare two long strings on their values but ignore spaces in between

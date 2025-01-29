@@ -11,11 +11,11 @@ Run inside a SAS session, this custom step takes either a SAS dataset or a CAS t
 
 trigger_name="_azp"
 
-cs=CustomStep(type="code", version="1.0.0",createdBy="Sundaresh Sankaran", 
-              name="LLM - Azure OpenAI Zero-Shot Prompting",
-              displayName="LLM - Azure OpenAI Zero-Shot Prompting",
+cs=CustomStep(type="code", version="1.0.0",createdBy="Sundaresh Sankaran and Crystal Baker", 
+              name="LLM - Azure OpenAI In-context Learning",
+              displayName="LLM - Azure OpenAI In-context Learning",
               creationTimeStamp=datetime.now().strftime("%Y-%m-%d"),
-              modifiedBy="Sundaresh Sankaran",
+              modifiedBy="Crystal Baker",
               modifiedTimeStamp=datetime.now().strftime("%Y-%m-%d")
               )
 

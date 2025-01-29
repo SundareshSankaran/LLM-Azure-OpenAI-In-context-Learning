@@ -3,11 +3,11 @@ import json
 from py_sas_studio_custom_steps import CustomStep
 from datetime import datetime
 
-createdBy="Sundaresh Sankaran"
-modifiedBy="Sundaresh Sankaran"
+createdBy="Sundaresh Sankaran and Crystal Baker"
+modifiedBy="Crystal Baker"
 name= "LLM - Azure OpenAI In-context Learning"
 
-cs = CustomStep(type="code",createdBy="Sundaresh Sankaran", 
+cs = CustomStep(type="code",createdBy=createdBy, 
               name=name,
               displayName=name,
               creationTimeStamp=datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
