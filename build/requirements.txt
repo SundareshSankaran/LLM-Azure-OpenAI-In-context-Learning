@@ -3,3 +3,5 @@ yq
 ipykernel
 pandas
 tabulate
+openai
+

@@ -21,7 +21,8 @@ jsd = json.dumps(js)
 
 cs["ui"]=jsd
 
-# cs.create_custom_step(custom_step_path=os.path.join(os.getcwd(),"..","LLM - Azure OpenAI Zero-Shot Prompting.step"))
+if os.path.isfile(os.path.join(os.getcwd(),"..", "extras", f"{name}.sas")):
+    cs.attach_sas_program(sas_file=os.path.join(os.getcwd(),"..","extras", f"{name}.sas"))
+
+
 cs.create_custom_step(os.path.join(os.getcwd(),"..",name + ".step"))
-
-
