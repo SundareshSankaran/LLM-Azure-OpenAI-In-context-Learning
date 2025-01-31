@@ -21,7 +21,6 @@ jsd = json.dumps(js)
 
 cs["ui"]=jsd
 
-
 if os.path.isfile(os.path.join(os.getcwd(),"..", "extras", f"{name}.sas")):
     cs.attach_sas_program(sas_file=os.path.join(os.getcwd(),"..","extras", f"{name}.sas"))
 

@@ -1,6 +1,7 @@
 import os
 import json
 import pandas
+
 from datetime import datetime
 
 modifiedBy="Crystal Baker"
@@ -15,6 +16,7 @@ name= "LLM - Azure OpenAI In-context Learning"
 cs = CustomStep()
 
 cs.load_step_file(custom_step_file=os.path.join(os.getcwd(),"..",f"{name}.step"))
+
 js=json.loads(cs.__dict__["ui"])
 
 # Write a Python function to compare two long strings on their values but ignore spaces in between
@@ -23,7 +25,9 @@ def compare_strings_ignore_spaces(str1, str2):
     str2_clean = ''.join(str2.split())
     return str1_clean == str2_clean
 
+
 # Given a nested json , create a function which provides all objects nested wihin layers of the 
+
 
 # Create a Python dict from a tsv file
 def tsv_to_dict(tsv_file_path):
@@ -106,10 +110,12 @@ for component in component_dict:
 
 # Update the CustomStep object with the new ui field
 cs.__dict__["ui"] = json.dumps(js)
+
 cs["modifiedBy"] = modifiedBy
 cs["modifiedTimeStamp"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 cs.create_custom_step(custom_step_path= os.path.join(os.getcwd(),"..",f"{name}.step"))
+
 
 # Replace the existing components.json file with js
 components_json_path = os.path.join(os.getcwd(), "components.json")

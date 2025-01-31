@@ -341,7 +341,9 @@
                 {
                     "id": "version_text",
                     "type": "text",
+
                     "text": "Version: 1.0  (31JAN2025)",
+
                     "visible": ""
                 },
                 {
