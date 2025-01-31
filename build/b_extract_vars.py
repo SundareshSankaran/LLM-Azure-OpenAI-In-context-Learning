@@ -34,5 +34,3 @@ for page in js["pages"]:
 
 pandas.DataFrame(var_dict).to_markdown(os.path.join(os.getcwd(),"List_of_Variables.md"))
 pandas.DataFrame(var_dict).to_csv(os.path.join(os.getcwd(),"List_of_Variables.tsv"), sep="\t")
-
-
