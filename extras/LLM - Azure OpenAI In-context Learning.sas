@@ -1,12 +1,12 @@
 /* SAS templated code goes here */
 
 /* -------------------------------------------------------------------------------------------* 
-   LLM - Azure OpenAI Zero-Shot Prompting
+   LLM - Azure OpenAI In-context Learning
 
-   v 1.0.0 (23JAN2025)
+   v 1.0.0 (01FEB2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
-   simple instructions on specified input data  and is meant for use within a SAS Studio Custom 
+    instructions on specified input data  and is meant for use within a SAS Studio Custom 
    Step. Please modify requisite macro variables (hint: use the debug section as a reference) 
    to run this through other interfaces, such as a SAS Program editor or the SAS extension 
    for Visual Studio Code.
@@ -77,82 +77,12 @@ data _null_;
 
    datalines4;
 
+print("waiting for code contribution by Crystal")
+
 ############################################################################################################
 #   Functions
 ############################################################################################################
 
-def get_client(endpoint = None, api_key = None, api_version = None):
-    from openai import AzureOpenAI
-    import os
-    if endpoint is None:
-        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"] 
-    if api_key is None:
-        api_key = os.environ["AZURE_OPENAI_API_KEY"] 
-    if api_version is None:
-        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
-
-    client = AzureOpenAI( api_key = api_key,  api_version = api_version, azure_endpoint = endpoint)
-    return client
-
-def get_prompt(system_prompt = None, user_prompt = None, context = None):
-    if system_prompt is None:
-        system_prompt = "You are a helpful assistant. For each call, use provided context (Context:) to answer a provided question (Question:) in a concise manner.  Return only the answer."
-    if user_prompt is None:
-        user_prompt = "Echo whatever is provided as context."
-    if context is None:
-        context = "Echo"
-    return [
-    {
-        "role": "system",
-        "content": system_prompt
-    },
-    {
-        "role": "user",
-        "content": f"Question: {user_prompt}. Context: {context}" 
-    }
-    ]
-
-def call_llm(prompt = None, client = None, deployment = deployment_name, temperature = temperature):
-    if prompt is None:
-        prompt = get_prompt()
-    if client is None:
-        client = get_client()
-    if deployment is None:
-        deployment = os.environ["DEPLOYMENT_NAME"]
-    if temperature is None:
-        temperature = 0.7
-    completion = client.chat.completions.create(
-        model = deployment,
-        messages = prompt,
-        temperature = temperature
-    )  
-    return completion.choices[0].message.content
-
-def execute(context = None, user_prompt=None, system_prompt= None):
-    prompt = get_prompt(context = context, user_prompt = user_prompt, system_prompt = system_prompt)
-    client = get_client()
-    return call_llm(prompt = prompt, client = client)
-
-############################################################################################################
-#   Execution code
-############################################################################################################
-
-# Obtain values from UI
-
-input_data_ref = SAS.symget('inputData')
-input_data = SAS.sd2df(input_data_ref)
-
-text_column = SAS.symget('textCol')
-user_prompt = SAS.symget('userPrompt')
-system_prompt = SAS.symget('systemPrompt')
-temperature = SAS.symget('temperature')
-deployment_name = SAS.symget('genModelDeployment')
-api_key = SAS.symget('azureKeyLocation')
-api_version = SAS.symget('openAIVersion')
-endpoint = SAS.symget('azureOpenAIEndpoint')
-
-
-input_data["response"] = input_data[text_column].apply(execute, user_prompt = user_prompt, system_prompt = system_prompt)
 
 ;;;;
 run;   
@@ -400,11 +330,11 @@ run;
 /*-----------------------------------------------------------------------------------------*
    EXECUTION CODE MACRO 
 
-   _azp prefix stands for Azure Zero-shot Prompting
+   _aicl prefix stands for Azure Zero-shot Prompting
 *------------------------------------------------------------------------------------------*/
-%macro _azp_execution_code;
+%macro _aicl_execution_code;
 
-%mend _azp_execution_code;
+%mend _aicl_execution_code;
 
 /*-----------------------------------------------------------------------------------------*
    END MACROS
@@ -417,21 +347,19 @@ run;
 /*-----------------------------------------------------------------------------------------*
    Create Runtime Trigger
 *------------------------------------------------------------------------------------------*/
-%_create_runtime_trigger(_azp_run_trigger);
+%_create_runtime_trigger(_aicl_run_trigger);
 
 /*-----------------------------------------------------------------------------------------*
    Execute 
 *------------------------------------------------------------------------------------------*/
 
+%if &_aicl_run_trigger. = 1 %then %do;
 
-
-%if &_azp_run_trigger. = 1 %then %do;
-
-   %_azp_execution_code;
+   %_aicl_execution_code;
 
 %end;
 
-%if &_azp_run_trigger. = 0 %then %do;
+%if &_aicl_run_trigger. = 0 %then %do;
 
    %put NOTE: This step has been disabled.  Nothing to do.;
 
@@ -439,9 +367,9 @@ run;
 
 
 %put NOTE: Final summary;
-%put NOTE: Status of error flag - &_azp_error_flag. ;
-%put &_azp_error_desc.;
-%put NOTE: Error desc - &_azp_error_desc. ;
+%put NOTE: Status of error flag - &_aicl_error_flag. ;
+%put &_aicl_error_desc.;
+%put NOTE: Error desc - &_aicl_error_desc. ;
 
 /*-----------------------------------------------------------------------------------------*
    END EXECUTION CODE
@@ -459,6 +387,6 @@ run;
 %sysmacdelete _usr_getNameCaslib;
 %sysmacdelete _sas_or_cas;
 %sysmacdelete _cas_table_exists;
-%sysmacdelete _azp_execution_code;
+%sysmacdelete _aicl_execution_code;
 
 
