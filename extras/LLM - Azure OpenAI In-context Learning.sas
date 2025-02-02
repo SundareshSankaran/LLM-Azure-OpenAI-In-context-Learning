@@ -23,9 +23,9 @@
 
 /* Provide test values for the parameters */
 
-/*
 
-%let inputData = ;
+
+%let inputData = SASHELP.CARS;
 %let systemPrompt = ;
 %let userPrompt = ;
 %let temperature = ;
@@ -36,8 +36,12 @@
 %let azureRegion = ;
 %let openAIVersion = ;
 
+data _null_;
+   call symput('inputData_lib', scan("&inputData", 1, "."));
+   call symput('inputData_name', scan("&inputData", 2, "."));
+run;
 
-*/;
+
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -60,14 +64,14 @@
 
 *------------------------------------------------------------------------------------------*/
 
-filename azpcode temp;
+filename aiclcode temp;
 
 data _null_;
 
    length line $32767;               * max SAS character size ;
    infile datalines4 truncover pad;
    input ;   
-   file azpcode;
+   file aiclcode;
    line = strip(_infile_);           * line without leading and trailing blanks ;
    l1 = length(trimn(_infile_));     * length of line without trailing blanks ;
    l2 = length(line);                * length of line without leading and trailing blanks ;
@@ -267,7 +271,7 @@ run;
     %if %sysfunc(compress("&&&tableEngine.")) = "V9" %THEN %DO;
         data _null_;
             call symput("&tableEngine.","SAS");
-            call symputx("&errorFlag.",0);
+            call symputx("&errorFlagName.",0);
             call symput("&errorFlagDesc.","");
         run;
     %end;
@@ -334,6 +338,31 @@ run;
 *------------------------------------------------------------------------------------------*/
 %macro _aicl_execution_code;
 
+   %_create_error_flag(_aicl_error_flag, _aicl_error_desc);
+
+   %if &_aicl_error_flag. = 0 %then %do;
+
+/*-----------------------------------------------------------------------------------------*
+    Check for Input table engine name.
+*------------------------------------------------------------------------------------------*/
+     %let _sas_cas_flag=;
+     %_sas_or_cas(&inputData_lib., _sas_cas_flag, _aicl_error_flag, _aicl_error_desc, 0)
+     %put NOTE: Input Table Engine - &_sas_cas_flag. ;
+
+   %end;
+/*-----------------------------------------------------------------------------------------*
+    Proceed for Python call
+*------------------------------------------------------------------------------------------*/
+
+   %if &_aicl_error_flag. = 0 %then %do;
+
+      proc python infile=aiclcode;
+      run;
+
+   %end;
+
+
+
 %mend _aicl_execution_code;
 
 /*-----------------------------------------------------------------------------------------*
@@ -378,8 +407,14 @@ run;
    Clean up existing macro variables and macro definitions.
 *------------------------------------------------------------------------------------------*/
 
-%if %symexist(__) %then %do;
-   %symdel __;
+%if %symexist(_aicl_run_trigger) %then %do;
+   %symdel _aicl_run_trigger;
+%end;
+%if %symexist(_aicl_error_flag) %then %do;
+   %symdel _aicl_error_flag;
+%end;
+%if %symexist(_aicl_error_desc) %then %do;
+   %symdel _aicl_error_desc;
 %end;
 
 %sysmacdelete _create_error_flag;
