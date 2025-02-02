@@ -23,13 +23,21 @@
 
 /* Provide test values for the parameters */
 
+cas ss;
+caslib _all_ assign;
 
+data PUBLIC.JOBCODES;
+   set SAMPSIO.JOBCODES;
+run;
+data WORK.JOBCODES;
+   set SAMPSIO.JOBCODES;
+run;
 
-%let inputData = SASHELP.CARS;
+%let inputData = PUBLIC.JOBCODES;
 %let systemPrompt = ;
 %let userPrompt = ;
 %let temperature = ;
-%let outputTable = ;
+%let outputTable = WORK.ANSWER;
 %let genModelDeployment = ;
 %let azureKeyLocation = ;
 %let azureOpenAIEndpoint = ;
@@ -41,7 +49,10 @@ data _null_;
    call symput('inputData_name', scan("&inputData", 2, "."));
 run;
 
-
+data _null_;
+   call symput('outputTable_lib', scan("&outputTable", 1, "."));
+   call symput('outputTable_name', scan("&outputTable", 2, "."));
+run;
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -163,11 +174,13 @@ run;
 
 %macro _env_cas_checkSession(errorFlagName, errorFlagDesc);
     %global casSessionExists;
+    %put NOTE: Checking for an active CAS session. ;
     %if %sysfunc(symexist(_current_uuid_)) %then %do;
        %symdel _current_uuid_;
     %end;
     %if %sysfunc(symexist(_SESSREF_)) %then %do;
       %let casSessionExists= %sysfunc(sessfound(&_SESSREF_.));
+      %put NOTE: CAS Session indicator - &casSessionExists. ;
       %if &casSessionExists.=1 %then %do;
          %global _current_uuid_;
          %let _current_uuid_=;   
@@ -177,23 +190,23 @@ run;
          quit;
          %put NOTE: A CAS session &_SESSREF_. is currently active with UUID &_current_uuid_. ;
          data _null_;
-            call symputx(&errorFlagName., 0);
-            call symput(&errorFlagDesc., "CAS session is active.");
+            call symputx("&errorFlagName.", 0);
+            call symput("&errorFlagDesc.", "CAS session is active.");
          run;
       %end;
       %else %do;
          %put NOTE: Unable to find a currently active CAS session. Reconnect or connect to a CAS session upstream. ;
          data _null_;
-            call symputx(&errorFlagName., 1);
-            call symput(&errorFlagDesc., "Unable to find a currently active CAS session. Reconnect or connect to a CAS session upstream.");
+            call symputx("&errorFlagName.", 1);
+            call symput("&errorFlagDesc.", "Unable to find a currently active CAS session. Reconnect or connect to a CAS session upstream.");
         run;
       %end;
    %end;
    %else %do;
       %put NOTE: No active CAS session ;
       data _null_;
-        call symputx(&errorFlagName., 1);
-        call symput(&errorFlagDesc., "No active CAS session. Connect to a CAS session upstream.");
+        call symputx("&errorFlagName.", 1);
+        call symput("&errorFlagDesc."", "No active CAS session. Connect to a CAS session upstream.");
       run;
    %end;
 
@@ -340,20 +353,34 @@ run;
 
    %_create_error_flag(_aicl_error_flag, _aicl_error_desc);
 
+/*-----------------------------------------------------------------------------------------*
+    Check for a CAS session
+*------------------------------------------------------------------------------------------*/
    %if &_aicl_error_flag. = 0 %then %do;
-
+      %_env_cas_checkSession(_aicl_error_flag, _aicl_error_desc);
+      %put NOTE: CAS session flag shows &casSessionExists. ;
+   %end;
 /*-----------------------------------------------------------------------------------------*
     Check for Input table engine name.
 *------------------------------------------------------------------------------------------*/
-     %let _sas_cas_flag=;
-     %_sas_or_cas(&inputData_lib., _sas_cas_flag, _aicl_error_flag, _aicl_error_desc, 0)
-     %put NOTE: Input Table Engine - &_sas_cas_flag. ;
-
+   %if &_aicl_error_flag. = 0 %then %do;
+      %let _ip_sas_cas_flag=;
+      %_sas_or_cas(&inputData_lib., _ip_sas_cas_flag, _aicl_error_flag, _aicl_error_desc, &casSessionExists.)
+      %put NOTE: Input Table Engine - &_ip_sas_cas_flag. ;
    %end;
+
+/*-----------------------------------------------------------------------------------------*
+    Check for Output table engine name.
+*------------------------------------------------------------------------------------------*/
+   %if &_aicl_error_flag. = 0 %then %do;
+      %let _op_sas_cas_flag=;
+      %_sas_or_cas(&outputTable_lib., _op_sas_cas_flag, _aicl_error_flag, _aicl_error_desc, &casSessionExists.)
+      %put NOTE: Output Table Engine - &_op_sas_cas_flag. ;
+   %end;
+
 /*-----------------------------------------------------------------------------------------*
     Proceed for Python call
 *------------------------------------------------------------------------------------------*/
-
    %if &_aicl_error_flag. = 0 %then %do;
 
       proc python infile=aiclcode;
@@ -416,6 +443,12 @@ run;
 %if %symexist(_aicl_error_desc) %then %do;
    %symdel _aicl_error_desc;
 %end;
+%if %symexist(casSessionExists) %then %do;
+   %symdel casSessionExists;
+%end;
+%if %symexist(_current_uuid_) %then %do;
+   %symdel _current_uuid_;
+%end;
 
 %sysmacdelete _create_error_flag;
 %sysmacdelete _env_cas_checkSession;
@@ -424,4 +457,4 @@ run;
 %sysmacdelete _cas_table_exists;
 %sysmacdelete _aicl_execution_code;
 
-
+cas ss terminate;;
