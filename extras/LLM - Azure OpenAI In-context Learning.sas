@@ -37,7 +37,7 @@ run;
 %let systemPrompt = ;
 %let userPrompt = ;
 %let temperature = ;
-%let outputTable = WORK.ANSWER;
+%let outputTable = PUBLIC.ANSWER;
 %let genModelDeployment = ;
 %let azureKeyLocation = ;
 %let azureOpenAIEndpoint = ;
@@ -368,6 +368,17 @@ run;
       %_sas_or_cas(&inputData_lib., _ip_sas_cas_flag, _aicl_error_flag, _aicl_error_desc, &casSessionExists.)
       %put NOTE: Input Table Engine - &_ip_sas_cas_flag. ;
    %end;
+/*-----------------------------------------------------------------------------------------*
+    If Input table is in CAS, obtain the caslib name.
+*------------------------------------------------------------------------------------------*/
+   %if &_aicl_error_flag. = 0 %then %do;
+      %if %sysfunc(compress("&_ip_sas_cas_flag.")) = "CAS" %then %do;
+         %_usr_getNameCaslib(&inputData_lib.);
+         %put NOTE: CASLIB name for &_ip_sas_cas_flag. - &_usr_nameCaslib. ;
+         %let inputData_caslib = &_usr_nameCaslib.;
+         %let _usr_nameCaslib =;
+      %end;
+   %end;
 
 /*-----------------------------------------------------------------------------------------*
     Check for Output table engine name.
@@ -376,6 +387,18 @@ run;
       %let _op_sas_cas_flag=;
       %_sas_or_cas(&outputTable_lib., _op_sas_cas_flag, _aicl_error_flag, _aicl_error_desc, &casSessionExists.)
       %put NOTE: Output Table Engine - &_op_sas_cas_flag. ;
+   %end;
+
+/*-----------------------------------------------------------------------------------------*
+    If Output table is in CAS, obtain the caslib name.
+*------------------------------------------------------------------------------------------*/
+   %if &_aicl_error_flag. = 0 %then %do;
+      %if %sysfunc(compress("&_op_sas_cas_flag.")) = "CAS" %then %do;
+         %_usr_getNameCaslib(&outputTable_lib.);
+         %put NOTE: CASLIB name for &_op_sas_cas_flag. - &_usr_nameCaslib. ;
+         %let outputTable_caslib = &_usr_nameCaslib.;
+         %let _usr_nameCaslib =;
+      %end;
    %end;
 
 /*-----------------------------------------------------------------------------------------*
