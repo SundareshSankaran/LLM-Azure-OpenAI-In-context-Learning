@@ -35,8 +35,6 @@ data WORK.JOBCODES;
 run;
 
 
-/* Provide test values for the parameters */
-
 data _null_;
    call symput('inputData','PUBLIC.JOBCODES');
    call symput('systemPrompt', 'Answer based on the illustrative example provided.');
