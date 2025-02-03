@@ -44,12 +44,12 @@ data _null_;
    call symput('userExample', 'Example: What is the job code for a Tax Accountant 1? Answer:ACT001');
    call symput('docId', 'JOBCODE');  
    call symput('textCol', 'TITLE');
-   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/keysncerts/key_20250129.txt");
-   call symput('azureOpenAIEndpoint', "https://oai-test-ss.openai.azure.com");
-   call symput('azureRegion', 'eastus');
+   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/..");
+   call symput('azureOpenAIEndpoint', " ");
+   call symput('azureRegion', ' ');
    call symput('openAIVersion', '2024-10-21');
    call symput('outputTable', 'PUBLIC.ANSWER');
-   call symput('genModelDeployment', 'gpt-35-turbo');
+   call symput('genModelDeployment', ' ');
 
 run;
 
