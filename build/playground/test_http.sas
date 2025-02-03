@@ -23,7 +23,7 @@ filename headd temp;
 
 data _null_;
 file headd;
-put "api-key: f280112d275040608311f2920c9f1a28";
+put "api-key: jhjhkhj";
 put "Accept: application/json";
 run;
 
