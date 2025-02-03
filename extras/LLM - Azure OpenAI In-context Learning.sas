@@ -33,16 +33,25 @@ data WORK.JOBCODES;
    set SAMPSIO.JOBCODES;
 run;
 
-%let inputData = PUBLIC.JOBCODES;
-%let systemPrompt = ;
-%let userPrompt = ;
-%let temperature = ;
-%let outputTable = PUBLIC.ANSWER;
-%let genModelDeployment = ;
-%let azureKeyLocation = ;
-%let azureOpenAIEndpoint = ;
-%let azureRegion = ;
-%let openAIVersion = ;
+
+/* Provide test values for the parameters */
+
+data _null_;
+   call symput('inputData','PUBLIC.JOBCODES');
+   call symput('systemPrompt', 'Answer based on the illustrative example provided.');
+   call symput('userPrompt', 'Provide the job code for given context.');
+   call symputx('temperature', 0);
+   call symput('userExample', 'Example: What is the job code for a Tax Accountant 1? Answer:ACT001');
+   call symput('docId', 'JOBCODE');  
+   call symput('textCol', 'TITLE');
+   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/keysncerts/key_20250129.txt");
+   call symput('azureOpenAIEndpoint', "https://oai-test-ss.openai.azure.com");
+   call symput('azureRegion', 'eastus');
+   call symput('openAIVersion', '2024-10-21');
+   call symput('outputTable', 'PUBLIC.ANSWER');
+   call symput('genModelDeployment', 'gpt-35-turbo');
+
+run;
 
 data _null_;
    call symput('inputData_lib', scan("&inputData", 1, "."));
@@ -91,6 +100,36 @@ data _null_;
    else put @first_position line;    * line without leading and trailing blanks correctly aligned ;
 
    datalines4;
+############################################################################################################
+#   Obtain values from UI
+############################################################################################################
+input_data = SAS.symget('inputData')
+output_table = SAS.symget('outputTable')
+input_data_lib = SAS.symget('inputData_lib')
+output_table_lib = SAS.symget('outputTable_lib')
+input_data_name = SAS.symget('inputData_name')
+output_table_name = SAS.symget('outputTable_name')
+system_prompt = SAS.symget('systemPrompt')
+text_col = SAS.symget('textCol')
+doc_id = SAS.symget('docId')
+user_prompt = SAS.symget('userPrompt')
+temperature = SAS.symget('temperature')
+user_example = SAS.symget('userExample')
+deployment_name = SAS.symget('genModelDeployment')
+azure_key = SAS.symget('azure_key')
+azure_openai_endpoint = SAS.symget('azureOpenAIEndpoint')
+azure_region = SAS.symget('azureRegion')
+azure_openai_version = SAS.symget('openAIVersion')
+_aicl_error_flag = SAS.symget('_aicl_error_flag')
+_aicl_error_desc = SAS.symget('_aicl_error_desc')
+_ip_sas_cas_flag = SAS.symget('_ip_sas_cas_flag')
+_op_sas_cas_flag = SAS.symget('_op_sas_cas_flag')
+inputData_caslib = SAS.symget('inputData_caslib')
+outputTable_caslib = SAS.symget('outputTable_caslib')
+_current_uuid_ = SAS.symget('_current_uuid_')
+
+
+
 
 print("waiting for code contribution by Crystal")
 
@@ -307,47 +346,59 @@ run;
     
 %mend _sas_or_cas;
 
-
-/*-----------------------------------------------------------------------------------------*
-   Macro to check if an in-memory table exists.
+/* -----------------------------------------------------------------------------------------* 
+   Macro to identify whether a given folder location provided from a 
+   SAS Studio Custom Step folder selector happens to be a SAS Content folder
+   or a folder on the filesystem (SAS Server).
 
    Input:
-   1. tableName: name of the in-memory table
-   2. tableLib: caslib backing the in-memory table
-   3. sessionExists: an indicator (1) whether an active CAS session exists.  If not(0),
-                     it will be created.
-                     
+   1. pathReference: A path reference provided by the file or folder selector control in 
+      a SAS Studio Custom step.
+
    Output:
-   1. tableExists: populated with 0 if does not exist, 1 if exists with local scope, 
-                   2 if exists with global scope
+   1. _path_identifier: Set inside macro, a global variable indicating the prefix of the 
+      path provided.
 
-*------------------------------------------------------------------------------------------*/   
+   Also available at: https://raw.githubusercontent.com/SundareshSankaran/sas_utility_programs/main/code/Identify%20SAS%20Content%20or%20Server/macro_identify_sas_content_server.sas
 
-%macro _cas_table_exists(tableName, tableLib, sessionExists, tableExists);
+*------------------------------------------------------------------------------------------ */
 
-   %if &sessionExists. = 0 %then %do;
-      cas _temp_ss_ ;
-      caslib _ALL_ assign;
-   %end;
+%macro _identify_content_or_server(pathReference);
+   %global _path_identifier;
+   data _null_;
+      call symput("_path_identifier", scan("&pathReference.",1,":","MO"));
+   run;
+   %put NOTE: _path_identifier is &_path_identifier. ;
+%mend _identify_content_or_server;
 
-   proc cas;
-      table.tableExists result = rc /
-         name="&tableName.",
-         caslib="&tableLib."
-      ;
-      call symputx("&tableExists.",rc.exists);
-   quit;
+/* -----------------------------------------------------------------------------------------* 
+   Macro to extract the path provided from a SAS Studio Custom Step file or folder selector.
 
-   %if &sessionExists. = 0 %then %do;
-      cas _temp_ss_ terminate;
-   %end;
-    
-%mend _cas_table_exists;
+   Input:
+   1. pathReference: A path reference provided by the file or folder selector control in 
+      a SAS Studio Custom step.
+
+   Output:
+   1. _sas_folder_path: Set inside macro, a global variable containing the path.
+
+   Also available at: https://raw.githubusercontent.com/SundareshSankaran/sas_utility_programs/main/code/Extract%20SAS%20Folder%20Path/macro_extract_sas_folder_path.sas
+
+*------------------------------------------------------------------------------------------ */
+
+%macro _extract_sas_folder_path(pathReference);
+
+   %global _sas_folder_path;
+
+   data _null_;
+      call symput("_sas_folder_path", scan("&pathReference.",2,":","MO"));
+   run;
+
+%mend _extract_sas_folder_path;
 
 /*-----------------------------------------------------------------------------------------*
    EXECUTION CODE MACRO 
 
-   _aicl prefix stands for Azure Zero-shot Prompting
+   _aicl prefix stands for Azure In-context Learning
 *------------------------------------------------------------------------------------------*/
 %macro _aicl_execution_code;
 
@@ -360,6 +411,7 @@ run;
       %_env_cas_checkSession(_aicl_error_flag, _aicl_error_desc);
       %put NOTE: CAS session flag shows &casSessionExists. ;
    %end;
+
 /*-----------------------------------------------------------------------------------------*
     Check for Input table engine name.
 *------------------------------------------------------------------------------------------*/
@@ -368,6 +420,7 @@ run;
       %_sas_or_cas(&inputData_lib., _ip_sas_cas_flag, _aicl_error_flag, _aicl_error_desc, &casSessionExists.)
       %put NOTE: Input Table Engine - &_ip_sas_cas_flag. ;
    %end;
+
 /*-----------------------------------------------------------------------------------------*
     If Input table is in CAS, obtain the caslib name.
 *------------------------------------------------------------------------------------------*/
@@ -399,6 +452,61 @@ run;
          %let outputTable_caslib = &_usr_nameCaslib.;
          %let _usr_nameCaslib =;
       %end;
+   %end;
+
+/*-----------------------------------------------------------------------------------------*
+   Check if path for Azure Key Location  happens to be a filesystem (SAS Server) path. 
+*------------------------------------------------------------------------------------------*/
+   %if &_aicl_error_flag. = 0 %then %do;
+
+      %_identify_content_or_server(&azureKeyLocation.);
+
+      %if "&_path_identifier."="sasserver" %then %do;
+         %put NOTE: Folder location prefixed with &_path_identifier. is on the SAS Server.;
+      %end;
+
+      %else %do;
+
+         %let _aicl_error_flag=1;
+         %put ERROR: Please select a valid file on the SAS Server (filesystem) containing your Azure OpenAI key.  Key should be in a secure location within filesystem. ;
+         data _null_;
+            call symputx("_aicl_error_desc", "Please select a valid file on the SAS Server (filesystem) containing your Azure OpenAI key.  Key should be in a secure location within filesystem.");
+         run;
+      
+      %end;
+
+   %end;
+
+   %if &_aicl_error_flag. = 0 %then %do;
+
+      %_extract_sas_folder_path(&azureKeyLocation.);
+
+      %if "&_sas_folder_path." = "" %then %do;
+
+         %let _aicl_error_flag = 1;
+         %let _aicl_error_desc = The answer bank provided is empty, please select a valid path  ;
+         %put ERROR: &_aor_error_desc. ;
+
+      %end;
+
+   %end;
+
+   %if &_aicl_error_flag. = 0 %then %do;
+
+      %let _key_location = ;
+      %let _key_location = &_sas_folder_path.;
+      %let _sas_folder_path=;
+
+   %end;
+
+   %if &_aicl_error_flag. = 0 %then %do;
+
+      data _null_;
+         infile "&_key_location." lrecl=1000;
+         input @;
+         call symput("azure_key",_INFILE_);
+      run;
+ 
    %end;
 
 /*-----------------------------------------------------------------------------------------*
@@ -473,11 +581,11 @@ run;
    %symdel _current_uuid_;
 %end;
 
+%sysmacdelete _create_runtime_trigger;
 %sysmacdelete _create_error_flag;
 %sysmacdelete _env_cas_checkSession;
 %sysmacdelete _usr_getNameCaslib;
 %sysmacdelete _sas_or_cas;
-%sysmacdelete _cas_table_exists;
 %sysmacdelete _aicl_execution_code;
 
 cas ss terminate;;
