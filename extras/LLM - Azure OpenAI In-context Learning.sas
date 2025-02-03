@@ -22,6 +22,7 @@
 *------------------------------------------------------------------------------------------*/
 
 /* Provide test values for the parameters */
+/*
 
 cas ss;
 caslib _all_ assign;
@@ -62,6 +63,8 @@ data _null_;
    call symput('outputTable_lib', scan("&outputTable", 1, "."));
    call symput('outputTable_name', scan("&outputTable", 2, "."));
 run;
+
+*/;
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -585,7 +588,19 @@ run;
 %sysmacdelete _create_error_flag;
 %sysmacdelete _env_cas_checkSession;
 %sysmacdelete _usr_getNameCaslib;
+%sysmacdelete _identify_content_or_server;
+%sysmacdelete _extract_sas_folder_path;
 %sysmacdelete _sas_or_cas;
 %sysmacdelete _aicl_execution_code;
 
+/*-----------------------------------------------------------------------------------------*
+   DEBUG Section
+   Code under the debug section SHOULD ALWAYS remain commented unless you are tinkering with  
+   or testing the step!
+*------------------------------------------------------------------------------------------*/
+/*
 cas ss terminate;;
+*/;
+/*-----------------------------------------------------------------------------------------*
+   END DEBUG Section
+*------------------------------------------------------------------------------------------*/
