@@ -246,7 +246,7 @@ run;
       %put NOTE: No active CAS session ;
       data _null_;
         call symputx("&errorFlagName.", 1);
-        call symput("&errorFlagDesc."", "No active CAS session. Connect to a CAS session upstream.");
+        call symput("&errorFlagDesc.", "No active CAS session. Connect to a CAS session upstream.");
       run;
    %end;
 

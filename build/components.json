@@ -341,15 +341,13 @@
                 {
                     "id": "version_text",
                     "type": "text",
-
-                    "text": "Version: 1.0  (31JAN2025)",
-
+                    "text": "Version: 1.0  (03FEB2025)",
                     "visible": ""
                 },
                 {
                     "id": "contact_text",
                     "type": "text",
-                    "text": "Created/contact: \n\n- Sundaresh Sankaran (sundaresh.sankaran@sas.com)\n",
+                    "text": "Created/contact: - Sundaresh Sankaran (sundaresh.sankaran@sas.com) \\n - Crystal Baker (crystal.baker@sas.com)",
                     "visible": ""
                 }
             ]
