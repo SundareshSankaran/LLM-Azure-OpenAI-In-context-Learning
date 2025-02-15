@@ -23,9 +23,8 @@
 
 /* Provide test values for the parameters */
 /*
-
-cas ss;
-caslib _all_ assign;
+cas ss; 
+caslib _all_ assign; 
 
 data PUBLIC.JOBCODES;
    set SAMPSIO.JOBCODES;
@@ -43,12 +42,12 @@ data _null_;
    call symput('userExample', 'Example: What is the job code for a Tax Accountant 1? Answer:ACT001');
    call symput('docId', 'JOBCODE');  
    call symput('textCol', 'TITLE');
-   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/..");
-   call symput('azureOpenAIEndpoint', " ");
-   call symput('azureRegion', ' ');
+   call symput('azureKeyLocation', "");
+   call symput('azureOpenAIEndpoint', "");
+   call symput('azureRegion', 'eastus2');
    call symput('openAIVersion', '2024-10-21');
    call symput('outputTable', 'PUBLIC.ANSWER');
-   call symput('genModelDeployment', ' ');
+   call symput('genModelDeployment', 'gpt-35-turbo');
 
 run;
 
@@ -104,7 +103,7 @@ data _null_;
 ############################################################################################################
 #   Obtain values from UI
 ############################################################################################################
-input_data = SAS.symget('inputData')
+input_data_ref = SAS.symget('inputData')
 output_table = SAS.symget('outputTable')
 input_data_lib = SAS.symget('inputData_lib')
 output_table_lib = SAS.symget('outputTable_lib')
@@ -127,16 +126,168 @@ _ip_sas_cas_flag = SAS.symget('_ip_sas_cas_flag')
 _op_sas_cas_flag = SAS.symget('_op_sas_cas_flag')
 inputData_caslib = SAS.symget('inputData_caslib')
 outputTable_caslib = SAS.symget('outputTable_caslib')
-_current_uuid_ = SAS.symget('_current_uuid_')
+sess_uuid = SAS.symget('_current_uuid_') 
+cas_host = SAS.symget("_CASHOST_")
+cas_port = SAS.symget("_CASPORT_")
+cas_session_exists = int(SAS.symget("casSessionExists"))
+SAS.logMessage("HELLO WORLD")
+SAS.logMessage("VARIABLES TRANSFERRED TO PYTHON CODE!!!!!!!!")
+SAS.logMessage(f"Output_table_name: {output_table_name}")
 
+# Check if input table is CAS or SAS table and create that dataframe
+if _ip_sas_cas_flag.strip().lower() == 'cas':
+   import swat 
+   import os
+   SAS.logMessage("WE FOUND A CAS TABLE")
+   
+   # Add certificate location to operating system list of trusted certs 
+   os.environ['CAS_CLIENT_SSL_CA_LIST']=os.environ['SSLCALISTLOC']
+   
+   # There is an active cas session
+   if cas_session_exists == 1: 
+      SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
+      conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
+   else:
+      SAS.logMessage("New connection made to CAS through swat")
+      conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
+   if conn: 
+         SAS.logMessage("Connection established.")
+         input_data = conn.CASTable(name = input_data_name, caslib=input_data_lib).to_frame()
+         SAS.logMessage(type(input_data))
+if _ip_sas_cas_flag.strip().lower() == 'sas':  
+   input_data = SAS.sd2df(input_data_ref)
 
-
-
-print("waiting for code contribution by Crystal")
 
 ############################################################################################################
 #   Functions
 ############################################################################################################
+import os
+from openai import AzureOpenAI
+import pandas as pd
+class SASAzureOpenAILLM():
+    def __init__(self,client = None,azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
+                temperature = 0.7):
+        self.client = client
+        self.azure_openai_endpoint = azure_openai_endpoint
+        self.deployment_name = deployment_name
+        self.azure_key = azure_key
+        self.azure_openai_version = azure_openai_version
+        self.prompt = []
+        self.temperature = temperature
+
+    def set_client(self, azure_openai_endpoint = None, azure_key = None, azure_openai_version= None):
+       if azure_openai_endpoint is None:
+          try:
+           azure_openai_endpoint= os.environ["AZURE_OPENAI_ENDPOINT"] 
+          except KeyError:
+            raise ValueError("Endpoint must be provided or set in AZURE_OPENAI_ENDPOINT environment variable")
+       if azure_key is None:
+            try:
+                 azure_key = os.environ["AZURE_OPENAI_azure_key"]
+            except KeyError:
+                 raise ValueError("API key must be provided or set in AZURE_OPENAI_azure_key environment variable")
+       if azure_openai_version is None:
+          try:
+             azure_openai_version = os.environ["AZURE_OPENAI_API_VERSION"]
+          except KeyError:
+             raise ValueError("API version must be provided or set in AZURE_OPENAI_API_VERSION environment variable")   
+          
+       self.client = AzureOpenAI(api_key = azure_key,  api_version = azure_openai_version, azure_endpoint = azure_openai_endpoint)
+
+    
+    def get_client(self):
+        return self.client
+
+    def set_prompt(self, system_prompt = None, user_prompt = None, example = None):
+        if system_prompt == None: 
+            system_prompt = "You are a helpful assistant. Using the provided context, respond with the answer only."
+        if user_prompt == None:
+            user_prompt = "Echo the context."
+        if example is None:
+             self.prompt = [
+             {
+                 "role": "system",
+                 "content": system_prompt
+             },
+             {
+                 "role": "user",
+                 "content": f"{user_prompt}\n" 
+             }
+             ]
+        else:
+             self.prompt = [
+             {
+                 "role": "system",
+                 "content": system_prompt
+             },
+             {
+                 "role": "user",
+                 "content": f"{user_prompt}\nExample(s): {example}\n"
+             }
+             ]
+    
+    def get_prompt(self):
+        return "".join((self.prompt[0]["content"], self.prompt[1]["content"]))
+    
+    def get_response(self, context = None, client = None, deployment_name = None, prompt = None, temperature=None):
+        if client is None:
+            client = self.client
+        if deployment_name is None:
+            deployment_name = self.deployment_name
+        if prompt is None:
+            prompt = self.prompt
+        if temperature is None:
+            temperature = self.temperature
+        # if context is none, then do nothing
+        if context is None or len(context) == 0:
+            print("No context provided")
+            return ""
+        else: 
+            prompt[1]["content"] = prompt[1]["content"] + f"Context: {context}"
+            completion = client.chat.completions.create(
+                model = deployment_name,
+                messages = prompt,
+                temperature = temperature,
+            )
+        return completion.choices[0].message.content
+   
+def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None): 
+   model = SASAzureOpenAILLM()
+   model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
+   model.set_prompt(system_prompt=system_prompt, user_prompt=user_prompt, example=user_example)
+   # SAS.logMessage("Before: " + str(type(input_data)))
+   input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name) 
+   # SAS.logMessage("After: " + str(type(input_data)))
+   return input_data
+
+output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 
+                 user_prompt = user_prompt, example=user_example,input_data=input_data, deployment_name = deployment_name, text_col = text_col)
+
+# Check if output table is CAS
+if _op_sas_cas_flag.strip().lower() == 'cas':
+   import swat 
+   import os
+   SAS.logMessage("WE FOUND another CAS TABLE")
+   
+   # Add certificate location to operating system list of trusted certs 
+   os.environ['CAS_CLIENT_SSL_CA_LIST']=os.environ['SSLCALISTLOC']
+   
+   # There is an active cas session
+   if cas_session_exists == 1: 
+      SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
+      conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
+   else:
+      SAS.logMessage("New connection made to CAS through swat")
+      conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
+   if conn: 
+         SAS.logMessage("We FOUND A RUNNING CONNECTION")
+         SAS.logMessage(type(output_df))
+         conn.upload_frame(output_df, casout = {'name':output_table_name, 
+                                          'caslib':outputTable_caslib, 
+                                          'replace':True})
+
+if _op_sas_cas_flag.strip().lower() == 'sas':  
+   output_data = SAS.df2sd(output_df, output_table)
 
 
 ;;;;
