@@ -3,12 +3,12 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
 
-   v 1.0.0 (03FEB2025)
+   v 1.0.0 (21FEB2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
-    instructions on specified input data  and is meant for use within a SAS Studio Custom 
+   instructions on specified input data and is designed to run within a SAS Studio Custom 
    Step. Please modify requisite macro variables (hint: use the debug section as a reference) 
-   to run this through other interfaces, such as a SAS Program editor or the SAS extension 
+   to run this using other interfaces, such as a SAS Program editor or the SAS Extension 
    for Visual Studio Code.
 
    Sundaresh Sankaran (sundaresh.sankaran@sas.com|sundaresh.sankaran@gmail.com)
@@ -22,7 +22,7 @@
 *------------------------------------------------------------------------------------------*/
 
 /* Provide test values for the parameters */
-/*
+
 cas ss; 
 caslib _all_ assign; 
 
@@ -38,16 +38,18 @@ data _null_;
    call symput('inputData','PUBLIC.JOBCODES');
    call symput('systemPrompt', 'Answer based on the illustrative example provided.');
    call symput('userPrompt', 'Provide the job code for given context.');
-   call symputx('temperature', 0);
+
    call symput('userExample', 'Example: What is the job code for a Tax Accountant 1? Answer:ACT001');
    call symput('docId', 'JOBCODE');  
    call symput('textCol', 'TITLE');
-   call symput('azureKeyLocation', "");
-   call symput('azureOpenAIEndpoint', "");
+   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/keysncerts/key_20250129.txt");
+   call symput('azureOpenAIEndpoint', "https://oai-test-ss.openai.azure.com/");
    call symput('azureRegion', 'eastus2');
    call symput('openAIVersion', '2024-10-21');
    call symput('outputTable', 'PUBLIC.ANSWER');
    call symput('genModelDeployment', 'gpt-35-turbo');
+
+   call symputx('temperature', 0);
 
 run;
 
@@ -61,7 +63,7 @@ data _null_;
    call symput('outputTable_name', scan("&outputTable", 2, "."));
 run;
 
-*/;
+
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -130,15 +132,15 @@ sess_uuid = SAS.symget('_current_uuid_')
 cas_host = SAS.symget("_CASHOST_")
 cas_port = SAS.symget("_CASPORT_")
 cas_session_exists = int(SAS.symget("casSessionExists"))
-SAS.logMessage("HELLO WORLD")
-SAS.logMessage("VARIABLES TRANSFERRED TO PYTHON CODE!!!!!!!!")
+
+SAS.logMessage("Variables Transferred to Python Code!!!!!!!!")
 SAS.logMessage(f"Output_table_name: {output_table_name}")
 
-# Check if input table is CAS or SAS table and create that dataframe
+# Check if input table is CAS or SAS table and create a dataframe accordingly
 if _ip_sas_cas_flag.strip().lower() == 'cas':
    import swat 
    import os
-   SAS.logMessage("WE FOUND A CAS TABLE")
+   SAS.logMessage("Input table is CAS")
    
    # Add certificate location to operating system list of trusted certs 
    os.environ['CAS_CLIENT_SSL_CA_LIST']=os.environ['SSLCALISTLOC']
@@ -150,12 +152,16 @@ if _ip_sas_cas_flag.strip().lower() == 'cas':
    else:
       SAS.logMessage("New connection made to CAS through swat")
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
+      cas_session_exists = 1
    if conn: 
          SAS.logMessage("Connection established.")
          input_data = conn.CASTable(name = input_data_name, caslib=input_data_lib).to_frame()
-         SAS.logMessage(type(input_data))
+         SAS.logMessage(f"Input table converted to {type(input_data)}")
 if _ip_sas_cas_flag.strip().lower() == 'sas':  
+   SAS.logMessage("Input table is CAS")
    input_data = SAS.sd2df(input_data_ref)
+   if input_data:
+      SAS.logMessage(f"Input table converted to {type(input_data)}")
 
 
 ############################################################################################################
@@ -165,7 +171,7 @@ import os
 from openai import AzureOpenAI
 import pandas as pd
 class SASAzureOpenAILLM():
-    def __init__(self,client = None,azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
+    def __init__(self,client = None, azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
                 temperature = 0.7):
         self.client = client
         self.azure_openai_endpoint = azure_openai_endpoint
@@ -267,7 +273,7 @@ output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azur
 if _op_sas_cas_flag.strip().lower() == 'cas':
    import swat 
    import os
-   SAS.logMessage("WE FOUND another CAS TABLE")
+   SAS.logMessage("Output table specified as CAS")
    
    # Add certificate location to operating system list of trusted certs 
    os.environ['CAS_CLIENT_SSL_CA_LIST']=os.environ['SSLCALISTLOC']
@@ -279,9 +285,10 @@ if _op_sas_cas_flag.strip().lower() == 'cas':
    else:
       SAS.logMessage("New connection made to CAS through swat")
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
+      cas_session_exists = 1
    if conn: 
-         SAS.logMessage("We FOUND A RUNNING CONNECTION")
-         SAS.logMessage(type(output_df))
+         SAS.logMessage("We found an active connection.")
+         SAS.logMessage(f"Output is currently of type {type(output_df)}")
          conn.upload_frame(output_df, casout = {'name':output_table_name, 
                                           'caslib':outputTable_caslib, 
                                           'replace':True})
