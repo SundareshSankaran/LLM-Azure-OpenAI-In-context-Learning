@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
 
-   v 1.0.0 (21FEB2025)
+   v 1.0.0 (22FEB2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
    instructions on specified input data and is designed to run within a SAS Studio Custom 
@@ -35,22 +35,19 @@ run;
 
 
 data _null_;
-   call symput('inputData','PUBLIC.JOBCODES');
-   call symput('systemPrompt', 'Answer based on the illustrative example provided.');
-   call symput('userPrompt', 'Provide the job code for given context.');
-
-   call symput('userExample', 'Example: What is the job code for a Tax Accountant 1? Answer:ACT001');
-   call symput('docId', 'JOBCODE');  
-   call symput('textCol', 'TITLE');
-   call symput('azureKeyLocation', "sasserver:/mnt/viya-share/data/keysncerts/key_20250129.txt");
-   call symput('azureOpenAIEndpoint', "https://oai-test-ss.openai.azure.com/");
-   call symput('azureRegion', 'eastus2');
-   call symput('openAIVersion', '2024-10-21');
-   call symput('outputTable', 'PUBLIC.ANSWER');
-   call symput('genModelDeployment', 'gpt-35-turbo');
-
-   call symputx('temperature', 0);
-
+   call symput('inputData',"%sysget(inputData)");
+   call symput('systemPrompt', "%sysget(systemPrompt)");
+   call symput('userPrompt', "%sysget(userPrompt)");
+   call symput('userExample', "%sysget(userExample)");
+   call symput('docId', "%sysget(docId)");
+   call symput('textCol', "%sysget(textCol)");
+   call symput('azureKeyLocation', "%sysget(azureKeyLocation)");
+   call symput('azureOpenAIEndpoint', "%sysget(azureOpenAIEndpoint)");
+   call symput('azureRegion', "%sysget(azureRegion)");
+   call symput('openAIVersion', "%sysget(openAIVersion)");
+   call symput('outputTable', "%sysget(outputTable)");
+   call symput('genModelDeployment', "%sysget(genModelDeployment)");
+   call symputx('temperature', %sysget(temperature));
 run;
 
 data _null_;
@@ -149,18 +146,20 @@ if _ip_sas_cas_flag.strip().lower() == 'cas':
    if cas_session_exists == 1: 
       SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
+      new_cas_session = 0
    else:
       SAS.logMessage("New connection made to CAS through swat")
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
       cas_session_exists = 1
+      new_cas_session = 1
    if conn: 
          SAS.logMessage("Connection established.")
          input_data = conn.CASTable(name = input_data_name, caslib=input_data_lib).to_frame()
          SAS.logMessage(f"Input table converted to {type(input_data)}")
 if _ip_sas_cas_flag.strip().lower() == 'sas':  
-   SAS.logMessage("Input table is CAS")
-   input_data = SAS.sd2df(input_data_ref)
-   if input_data:
+   SAS.logMessage("Input table is SAS dataset")
+   input_data = SAS.sd2df(dataset=input_data_ref)
+   if input_data is not None:
       SAS.logMessage(f"Input table converted to {type(input_data)}")
 
 
@@ -282,16 +281,28 @@ if _op_sas_cas_flag.strip().lower() == 'cas':
    if cas_session_exists == 1: 
       SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
+      new_cas_session = 0
    else:
       SAS.logMessage("New connection made to CAS through swat")
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
       cas_session_exists = 1
+      new_cas_session = 1
    if conn: 
          SAS.logMessage("We found an active connection.")
          SAS.logMessage(f"Output is currently of type {type(output_df)}")
          conn.upload_frame(output_df, casout = {'name':output_table_name, 
                                           'caslib':outputTable_caslib, 
                                           'replace':True})
+         if new_cas_session == 1:
+            SAS.logMessage("Persisting file prior to closing connection.")
+            r = conn.table.tableExists(name=output_table_name,caslib=outputTable_caslib)
+            if r.exists==2:
+               conn.table.droptable(name=output_table_name,caslib=outputTable_caslib)
+               sdfVarSaved = conn.table.save(conn.CASTable(name=output_table_name,caslib=outputTable_caslib), name =output_table_name, caslib=outputTable_caslib, replace = True)
+            else:
+               sdfVarSaved = conn.table.save(conn.CASTable(name=output_table_name,caslib=outputTable_caslib), name =output_table_name, caslib=outputTable_caslib, replace = True)
+            SAS.logMessage("Terminating the connection.")
+            conn.session.endsession()
 
 if _op_sas_cas_flag.strip().lower() == 'sas':  
    output_data = SAS.df2sd(output_df, output_table)
