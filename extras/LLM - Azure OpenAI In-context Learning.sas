@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
 
-   v 1.0.0 (22FEB2025)
+   v 1.0.0 (24FEB2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
    instructions on specified input data and is designed to run within a SAS Studio Custom 
@@ -22,7 +22,7 @@
 *------------------------------------------------------------------------------------------*/
 
 /* Provide test values for the parameters */
-
+/*
 cas ss; 
 caslib _all_ assign; 
 
@@ -60,7 +60,7 @@ data _null_;
    call symput('outputTable_name', scan("&outputTable", 2, "."));
 run;
 
-
+*/;
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
