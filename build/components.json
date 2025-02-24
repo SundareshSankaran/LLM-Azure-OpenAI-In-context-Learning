@@ -63,7 +63,7 @@
                             "open": true,
                             "children": [
                                 {
-                                    "id": "systemPrompt",
+                                    "id": "_systemPrompt",
                                     "type": "textarea",
                                     "label": "Provide system prompt:",
                                     "placeholder": "",
