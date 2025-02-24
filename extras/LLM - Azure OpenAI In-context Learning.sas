@@ -22,21 +22,21 @@
 *------------------------------------------------------------------------------------------*/
 
 /* Provide test values for the parameters */
-/*
-cas ss; 
-caslib _all_ assign; 
 
-data PUBLIC.JOBCODES;
-   set SAMPSIO.JOBCODES;
-run;
-data WORK.JOBCODES;
-   set SAMPSIO.JOBCODES;
-run;
+/* cas ss;  */
+/* caslib _all_ assign;  */
+
+/* data PUBLIC.JOBCODES; */
+/*    set SAMPSIO.JOBCODES; */
+/* run; */
+/* data WORK.JOBCODES; */
+/*    set SAMPSIO.JOBCODES; */
+/* run; */
 
 
-data _null_;
+/* data _null_;
    call symput('inputData',"%sysget(inputData)");
-   call symput('systemPrompt', "%sysget(systemPrompt)");
+   call symput('__systemPrompt', "%sysget(_systemPrompt)");
    call symput('userPrompt', "%sysget(userPrompt)");
    call symput('userExample', "%sysget(userExample)");
    call symput('docId', "%sysget(docId)");
@@ -58,9 +58,8 @@ run;
 data _null_;
    call symput('outputTable_lib', scan("&outputTable", 1, "."));
    call symput('outputTable_name', scan("&outputTable", 2, "."));
-run;
+run; */
 
-*/;
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -108,7 +107,7 @@ input_data_lib = SAS.symget('inputData_lib')
 output_table_lib = SAS.symget('outputTable_lib')
 input_data_name = SAS.symget('inputData_name')
 output_table_name = SAS.symget('outputTable_name')
-system_prompt = SAS.symget('systemPrompt')
+system_prompt = SAS.symget('_systemPrompt')
 text_col = SAS.symget('textCol')
 doc_id = SAS.symget('docId')
 user_prompt = SAS.symget('userPrompt')
@@ -129,9 +128,6 @@ sess_uuid = SAS.symget('_current_uuid_')
 cas_host = SAS.symget("_CASHOST_")
 cas_port = SAS.symget("_CASPORT_")
 cas_session_exists = int(SAS.symget("casSessionExists"))
-
-SAS.logMessage("Variables Transferred to Python Code!!!!!!!!")
-SAS.logMessage(f"Output_table_name: {output_table_name}")
 
 # Check if input table is CAS or SAS table and create a dataframe accordingly
 if _ip_sas_cas_flag.strip().lower() == 'cas':
@@ -155,12 +151,9 @@ if _ip_sas_cas_flag.strip().lower() == 'cas':
    if conn: 
          SAS.logMessage("Connection established.")
          input_data = conn.CASTable(name = input_data_name, caslib=input_data_lib).to_frame()
-         SAS.logMessage(f"Input table converted to {type(input_data)}")
 if _ip_sas_cas_flag.strip().lower() == 'sas':  
    SAS.logMessage("Input table is SAS dataset")
    input_data = SAS.sd2df(dataset=input_data_ref)
-   if input_data is not None:
-      SAS.logMessage(f"Input table converted to {type(input_data)}")
 
 
 ############################################################################################################
@@ -169,6 +162,7 @@ if _ip_sas_cas_flag.strip().lower() == 'sas':
 import os
 from openai import AzureOpenAI
 import pandas as pd
+import copy
 class SASAzureOpenAILLM():
     def __init__(self,client = None, azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
                 temperature = 0.7):
@@ -234,7 +228,10 @@ class SASAzureOpenAILLM():
     def get_prompt(self):
         return "".join((self.prompt[0]["content"], self.prompt[1]["content"]))
     
-    def get_response(self, context = None, client = None, deployment_name = None, prompt = None, temperature=None):
+    def get_response(self, context = None, client = None, deployment_name = None, prompt = None, temperature=None, system_prompt = None, user_prompt = None, example = None):
+        # Generate new base prompt
+        self.set_prompt(system_prompt, user_prompt, example)
+
         if client is None:
             client = self.client
         if deployment_name is None:
@@ -255,18 +252,17 @@ class SASAzureOpenAILLM():
                 temperature = temperature,
             )
         return completion.choices[0].message.content
-   
+        
 def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None): 
    model = SASAzureOpenAILLM()
    model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
    model.set_prompt(system_prompt=system_prompt, user_prompt=user_prompt, example=user_example)
-   # SAS.logMessage("Before: " + str(type(input_data)))
-   input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name) 
-   # SAS.logMessage("After: " + str(type(input_data)))
+   input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
    return input_data
 
 output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 
                  user_prompt = user_prompt, example=user_example,input_data=input_data, deployment_name = deployment_name, text_col = text_col)
+   
 
 # Check if output table is CAS
 if _op_sas_cas_flag.strip().lower() == 'cas':
@@ -288,8 +284,6 @@ if _op_sas_cas_flag.strip().lower() == 'cas':
       cas_session_exists = 1
       new_cas_session = 1
    if conn: 
-         SAS.logMessage("We found an active connection.")
-         SAS.logMessage(f"Output is currently of type {type(output_df)}")
          conn.upload_frame(output_df, casout = {'name':output_table_name, 
                                           'caslib':outputTable_caslib, 
                                           'replace':True})
@@ -383,6 +377,7 @@ run;
 
 %macro _env_cas_checkSession(errorFlagName, errorFlagDesc);
     %global casSessionExists;
+    %let casSessionExists= 0;
     %put NOTE: Checking for an active CAS session. ;
     %if %sysfunc(symexist(_current_uuid_)) %then %do;
        %symdel _current_uuid_;
@@ -406,7 +401,7 @@ run;
       %else %do;
          %put NOTE: Unable to find a currently active CAS session. Reconnect or connect to a CAS session upstream. ;
          data _null_;
-            call symputx("&errorFlagName.", 1);
+            call symputx("&errorFlagName.", 0);
             call symput("&errorFlagDesc.", "Unable to find a currently active CAS session. Reconnect or connect to a CAS session upstream.");
         run;
       %end;
@@ -414,12 +409,12 @@ run;
    %else %do;
       %put NOTE: No active CAS session ;
       data _null_;
-        call symputx("&errorFlagName.", 1);
+        call symputx("&errorFlagName.", 0);
         call symput("&errorFlagDesc.", "No active CAS session. Connect to a CAS session upstream.");
       run;
    %end;
 
-%mend _env_cas_checkSession;   
+%mend _env_cas_checkSession;  
 
 /*-----------------------------------------------------------------------------------------*
    Caslib for a Libname macro
@@ -683,6 +678,7 @@ run;
     Proceed for Python call
 *------------------------------------------------------------------------------------------*/
    %if &_aicl_error_flag. = 0 %then %do;
+   %put NOTE:&casSessionExists;
 
       proc python infile=aiclcode;
       run;
