@@ -23,8 +23,8 @@
 
 /* Provide test values for the parameters */
 
-/* cas ss;  */
-/* caslib _all_ assign;  */
+/* cas ss;  
+caslib _all_ assign;  */
 
 /* data PUBLIC.JOBCODES; */
 /*    set SAMPSIO.JOBCODES; */
@@ -33,8 +33,8 @@
 /*    set SAMPSIO.JOBCODES; */
 /* run; */
 
-
-/* data _null_;
+/*
+data _null_;
    call symput('inputData',"%sysget(inputData)");
    call symput('__systemPrompt', "%sysget(_systemPrompt)");
    call symput('userPrompt', "%sysget(userPrompt)");
@@ -58,8 +58,9 @@ run;
 data _null_;
    call symput('outputTable_lib', scan("&outputTable", 1, "."));
    call symput('outputTable_name', scan("&outputTable", 2, "."));
-run; */
+run; 
 
+*/
 
 /*-----------------------------------------------------------------------------------------*
    END DEBUG Section
@@ -133,7 +134,6 @@ cas_session_exists = int(SAS.symget("casSessionExists"))
 if _ip_sas_cas_flag.strip().lower() == 'cas':
    import swat 
    import os
-   SAS.logMessage("Input table is CAS")
    
    # Add certificate location to operating system list of trusted certs 
    os.environ['CAS_CLIENT_SSL_CA_LIST']=os.environ['SSLCALISTLOC']
@@ -151,18 +151,23 @@ if _ip_sas_cas_flag.strip().lower() == 'cas':
    if conn: 
          SAS.logMessage("Connection established.")
          input_data = conn.CASTable(name = input_data_name, caslib=input_data_lib).to_frame()
-if _ip_sas_cas_flag.strip().lower() == 'sas':  
+elif _ip_sas_cas_flag.strip().lower() == 'sas':  
    SAS.logMessage("Input table is SAS dataset")
    input_data = SAS.sd2df(dataset=input_data_ref)
+else:
+   SAS.symput('_aicl_error_flag', 1)
+   SAS.symput('_aicl_error_desc', 'Unable to associate input table with either SAS or CAS. Check the input table provided.')
 
 
 ############################################################################################################
 #   Functions
 ############################################################################################################
+
 import os
 from openai import AzureOpenAI
 import pandas as pd
 import copy
+
 class SASAzureOpenAILLM():
     def __init__(self,client = None, azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
                 temperature = 0.7):
@@ -182,9 +187,9 @@ class SASAzureOpenAILLM():
             raise ValueError("Endpoint must be provided or set in AZURE_OPENAI_ENDPOINT environment variable")
        if azure_key is None:
             try:
-                 azure_key = os.environ["AZURE_OPENAI_azure_key"]
+                 azure_key = os.environ["AZURE_OPENAI_AZURE_KEY"]
             except KeyError:
-                 raise ValueError("API key must be provided or set in AZURE_OPENAI_azure_key environment variable")
+                 raise ValueError("API key must be provided or set in AZURE_OPENAI_AZURE_KEY environment variable")
        if azure_openai_version is None:
           try:
              azure_openai_version = os.environ["AZURE_OPENAI_API_VERSION"]
@@ -195,6 +200,8 @@ class SASAzureOpenAILLM():
 
     
     def get_client(self):
+        if self.client is None:
+            raise ValueError("Client not set. Please set the client using set_client method")
         return self.client
 
     def set_prompt(self, system_prompt = None, user_prompt = None, example = None):
@@ -256,7 +263,7 @@ class SASAzureOpenAILLM():
 def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None): 
    model = SASAzureOpenAILLM()
    model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
-   model.set_prompt(system_prompt=system_prompt, user_prompt=user_prompt, example=user_example)
+#   model.set_prompt(system_prompt=system_prompt, user_prompt=user_prompt, example=user_example)
    input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
    return input_data
 
@@ -275,9 +282,11 @@ if _op_sas_cas_flag.strip().lower() == 'cas':
    
    # There is an active cas session
    if cas_session_exists == 1: 
-      SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
-      conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
-      new_cas_session = 0
+      if sess_uuid:
+         SAS.logMessage(f'Connection exists. Session UUID is {sess_uuid}')
+         conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'], session=sess_uuid)
+      elif conn:
+         SAS.logMessage(f'Connection exists.')
    else:
       SAS.logMessage("New connection made to CAS through swat")
       conn = swat.CAS(hostname=cas_host, port=cas_port, password=os.environ['SAS_SERVICES_TOKEN'])
@@ -297,11 +306,12 @@ if _op_sas_cas_flag.strip().lower() == 'cas':
                sdfVarSaved = conn.table.save(conn.CASTable(name=output_table_name,caslib=outputTable_caslib), name =output_table_name, caslib=outputTable_caslib, replace = True)
             SAS.logMessage("Terminating the connection.")
             conn.session.endsession()
-
-if _op_sas_cas_flag.strip().lower() == 'sas':  
+elif _op_sas_cas_flag.strip().lower() == 'sas':  
    output_data = SAS.df2sd(output_df, output_table)
-
-
+else:
+   SAS.symput('_aicl_error_flag', 1)
+   SAS.symput('_aicl_error_desc', 'Unable to associate output table with either SAS or CAS. Check the output table provided.')
+   
 ;;;;
 run;   
 
@@ -591,7 +601,16 @@ run;
 *------------------------------------------------------------------------------------------*/
    %if &_aicl_error_flag. = 0 %then %do;
       %if %sysfunc(compress("&_ip_sas_cas_flag.")) = "CAS" %then %do;
-         %_usr_getNameCaslib(&inputData_lib.);
+         %if &casSessionExists.=1 %then %do;
+            %_usr_getNameCaslib(&inputData_lib.);
+         %end;
+         %else %do;
+            cas _temp_ss_session_;
+            caslib _ALL_ assign;
+            %_usr_getNameCaslib(&inputData_lib.);
+            cas _temp_ss_session_ terminate;
+         %end;
+
          %put NOTE: CASLIB name for &_ip_sas_cas_flag. - &_usr_nameCaslib. ;
          %let inputData_caslib = &_usr_nameCaslib.;
          %let _usr_nameCaslib =;
@@ -612,7 +631,16 @@ run;
 *------------------------------------------------------------------------------------------*/
    %if &_aicl_error_flag. = 0 %then %do;
       %if %sysfunc(compress("&_op_sas_cas_flag.")) = "CAS" %then %do;
-         %_usr_getNameCaslib(&outputTable_lib.);
+         %if &casSessionExists.=1 %then %do;
+            %_usr_getNameCaslib(&outputTable_lib.);
+         %end;
+         %else %do;
+            cas _temp_ss_session_;
+            caslib _ALL_ assign;
+            %_usr_getNameCaslib(&outputTable_lib.);
+            cas _temp_ss_session_ terminate;
+         %end;
+         
          %put NOTE: CASLIB name for &_op_sas_cas_flag. - &_usr_nameCaslib. ;
          %let outputTable_caslib = &_usr_nameCaslib.;
          %let _usr_nameCaslib =;
@@ -678,7 +706,6 @@ run;
     Proceed for Python call
 *------------------------------------------------------------------------------------------*/
    %if &_aicl_error_flag. = 0 %then %do;
-   %put NOTE:&casSessionExists;
 
       proc python infile=aiclcode;
       run;
