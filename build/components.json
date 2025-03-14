@@ -271,7 +271,7 @@
                                 {
                                     "id": "input_parameters_text",
                                     "type": "text",
-                                    "text": "1. Input Data (input port, required): attach either a SAS dataset or a CAS table to the same.\n2. Text column (column selector, required): select one column containing text to serve as context\n3. ID column (column selector, required): select an ID column\n4. System prompt (text area, required, boilerplate default): Provide a system prompt which is used to provide broad instructions about persona, range of tasks and response specification for LLM\n5. User prompt (text area, required, boilerplate default): Provide a user prompt which specifies the task to perform\n6. Illustrative example (text area, optional): Provide an example of task and response to help the LLM understand how to process instructions.\n",
+                                    "text": "1. Input table (input port, required): Attach either a SAS dataset or a SAS Cloud Analytics Services (CAS) table to the input port of this step.\n2. Select text column (column selector, max 1): Select a column containing the context to be provided to the LLM\n3. System prompt (text area): Provide a system prompt for use by the LLM. The system prompt helps clarify the role that the LLM plays and is also used for other instructions such as how to answer the question and the format in which to present the results.\n4. User prompt (text area): Provide a user prompt which contains specific instructions to be fulfilled by the LLM.  In the user prompt, use fields like {Question} and {Context} to refer to the question or context provided.\n5. Illustrative examples (text area):  Provide some illustrative examples (the 'shots') which are used as a basis for the LLM to answer the question. Provide this in the form of \"Question:\" and \"Answer:\" pairs",
                                     "visible": ""
                                 }
                             ]
@@ -286,7 +286,7 @@
                                 {
                                     "id": "output_parameters_text",
                                     "type": "text",
-                                    "text": "1. Temperature (numeric stepper, default 0): temperature for an LLM affects its abiity to predict the next word when generating responses.  A rule of thumb is that a temperature closer to 0 indicates the model uses the predicted next word with the highest probability, whereas a temperature of 1 increases the randomness with which the model predicts the next word.  \n2. Output table (output port, required): attach either a CAS table or sas7bdat to the output port of this node to hold results.  These results contain the LLM's answer, the original question and columns carried along.",
+                                    "text": "1. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.\n2. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.",
                                     "visible": ""
                                 }
                             ]
@@ -301,7 +301,7 @@
                                 {
                                     "id": "output_parameters_text_1",
                                     "type": "text",
-                                    "text": "1. Text generation model (text field, required): provide the name of an Azure OpenAI text generation deployment.  For convenience, you may choose to use the same name as the OpenAI LLM. Example, gpt-35-turbo to gpt-35-turbo.\n2. Azure OpenAI service details (file selector for key and text fields, required): provide a path to your Azure OpenAI access key.  Ensure this key is saved within a text file in a secure location on the filesystem.  Users are responsible for providing their keys to use this service.  In addition, also refer to your Azure OpenAI service to obtain the service endpoint and region. The OpenAI API version can be changed if required.",
+                                    "text": "1. Text generation model (text field): Provide the name of a Azure OpenAI model deployment.For convenience, you may choose to use the same name as the OpenAI LLM. Example, gpt-35-turbo to gpt-35-turbo.\n2. Azure Key Location (file selector): Provide path to your Azure OpenAI key, located on the filesystem.  This would be a text file containing the value of the key.  Make sure this is saved in a secure location.\n3. Azure OpenAI endpoint (text field): Provide the URL of the Azure OpenAI service.\n4. Azure OpenAI region (text field): Provide the region where the service is set up (e.g. eastus2)\n5. OpenAI version (default provided): Provide an OpenAI version number in case you want to override the default.",
                                     "visible": ""
                                 }
                             ]
@@ -318,7 +318,7 @@
                         {
                             "id": "runtimecontrol_text",
                             "type": "text",
-                            "text": "Note: Run-time control is optional.  You may choose whether to execute the main code of this step or not, based on upstream conditions set by earlier SAS programs.  This includes nodes run prior to this custom step earlier in a SAS Studio Flow, or a previous program in the same session.Refer this blog (https://communities.sas.com/t5/SAS-Communities-Library/Switch-on-switch-off-run-time-control-of-SAS-Studio-Custom-Steps/ta-p/885526) for more details on the concept.The following macro variable,_aor_run_triggerwill initialize with a value of 1 by default, indicating an \"enabled\" status and allowing the custom step to run.If you wish to control execution of this custom step, include code in an upstream SAS program to set this variable to 0.  This \"disables\" execution of the custom step.To \"disable\" this step, run the following code upstream:%global _aicl_run_trigger;%let _aicl_run_trigger =0;To \"enable\" this step again, run the following (it's assumed that this has already been set as a global variable):%let _aicl_run_trigger =1;IMPORTANT: Be aware that disabling this step means that none of its main execution code will run, and any  downstream code which was dependent on this code may fail.  Change this setting only if it aligns with the objective of your SAS Studio program.",
+                            "text": "Note: Run-time control is optional.  You may choose whether to execute the main code of this step or not, based on upstream conditions set by earlier SAS programs.  This includes nodes run prior to this custom step earlier in a SAS Studio Flow, or a previous program in the same session.\n\nRefer this blog (https://communities.sas.com/t5/SAS-Communities-Library/Switch-on-switch-off-run-time-control-of-SAS-Studio-Custom-Steps/ta-p/885526) for more details on the concept.\nThe following macro variable,\n```sas\n_aicl_run_trigger\n```\nwill initialize with a value of 1 by default, indicating an 'enabled' status and allowing the custom step to run.\nIf you wish to control execution of this custom step, include code in an upstream SAS program to set this variable to 0.  This 'disables' execution of the custom step.\nTo 'disable' this step, run the following code upstream:\n```sas\n%global _aicl_run_trigger;\n%let _aicl_run_trigger = 0;\n```\nTo 'enable' this step again, run the following (it's assumed that this has already been set as a global variable):\n```sas\n%let _aicl_run_trigger = 1;\n```\n\nIMPORTANT: Be aware that disabling this step means that none of its main execution code will run, and any  downstream code which was dependent on this code may fail.  Change this setting only if it aligns with the objective of your SAS Studio program.",
                             "visible": ""
                         }
                     ]
@@ -341,7 +341,7 @@
                 {
                     "id": "version_text",
                     "type": "text",
-                    "text": "Version: 1.0  (24FEB2025)",
+                    "text": "Version: 1.0  (13MAR2025)",
                     "visible": ""
                 },
                 {

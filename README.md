@@ -70,6 +70,14 @@ IMPORTANT: Be aware that disabling this step means that none of its main executi
 -----
 ## Documentation
 
+1.  Azure OpenAI service: https://learn.microsoft.com/en-us/azure/ai-services/openai/
+
+2.  SAS Communities article on configuring Viya for Python integration: https://communities.sas.com/t5/SAS-Communities-Library/Configuring-SAS-Viya-for-Python-Integration/ta-p/847459
+
+3. The SAS Viya Platform Deployment Guide (refer to SAS Configurator for Open Source within): https://go.documentation.sas.com/doc/en/itopscdc/default/itopssr/p1n66p7u2cm8fjn13yeggzbxcqqg.htm?fromDefault=#p19cpvrrjw3lurn135ih46tjm7oi 
+
+4. OpenAI API versions change periodically. Keep track of them here: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
+
 -----
 ## SAS Program
 
