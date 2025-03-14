@@ -7,6 +7,11 @@ Run inside a SAS session, this custom step takes either a SAS dataset or a CAS t
 
 ## A general idea
 
+Refer the following animated GIF for a general idea.
+
+![General idea](./img/LLM-In-context.gif)
+
+
 ----
 ## Table of Contents
 
