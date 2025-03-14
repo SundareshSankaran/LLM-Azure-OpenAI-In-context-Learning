@@ -10,6 +10,14 @@ Run inside a SAS session, this custom step takes either a SAS dataset or a CAS t
 ----
 ## Table of Contents
 
+1. [Requirements](#requirements)
+2. [Parameters](#parameters)
+3. [Run-time Control](#run-time-control)
+4. [Documentation](#documentation)
+5. [SAS Program](#sas-program)
+6. [Contact](#createdcontact)
+7. [Change Log](#change-log)
+
 ----
 ## Requirements
 
