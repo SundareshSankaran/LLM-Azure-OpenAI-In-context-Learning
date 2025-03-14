@@ -86,6 +86,9 @@ IMPORTANT: Be aware that disabling this step means that none of its main executi
 
 4. OpenAI API versions change periodically. Keep track of them here: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
 
+5. For a quick overview of how to deploy an Azure OpenAI model, refer this [note](./extras/docs/How_to_create_AzureAI_Deployment.md).
+
+
 -----
 ## SAS Program
 
