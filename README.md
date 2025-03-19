@@ -32,7 +32,7 @@ Refer the following animated GIF for a general idea.
     1. [OpenAI](https://pypi.org/project/openai/)
     2. [Pandas](https://pypi.org/project/pandas/)
     3. [Swat](https://pypi.org/project/swat/)
-4. Valid Azure OpenAI service with embedding & large language models deployed.  [Refer here for instructions](https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio) 
+4. Valid Azure OpenAI service with large language model deployed.  [Refer here for instructions](https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio) 
 
 -----
 ## Parameters
