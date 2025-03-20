@@ -33,30 +33,6 @@
                             "table": "inputData"
                         },
                         {
-                            "id": "docId",
-                            "type": "columnselector",
-                            "label": "Select ID column:",
-                            "include": null,
-                            "order": false,
-                            "columntype": "a",
-                            "max": null,
-                            "min": null,
-                            "visible": "",
-                            "table": "inputData"
-                        },
-                        {
-                            "id": "copyVarList",
-                            "type": "columnselector",
-                            "label": "Select additional columns to copy over:",
-                            "include": null,
-                            "order": false,
-                            "columntype": "a",
-                            "max": null,
-                            "min": null,
-                            "visible": "",
-                            "table": "inputData"
-                        },
-                        {
                             "id": "section_prompts",
                             "type": "section",
                             "label": "Prompts",
@@ -116,93 +92,93 @@
                     "visible": "",
                     "children": [
                         {
-							"id": "temperature",
-							"type": "numstepper",
-							"label": "Select temperature for output:",
-							"required": false,
-							"integer": false,
-							"min": 0,
-							"max": 1,
-							"stepsize": 0.05
-						},
-						{
-							"id": "text_temperature",
-							"type": "text",
-							"text": "Use the temperature control to govern how the LLM generates its response based on next word prediction.",
-							"visible": ""
-						},
-						{
-							"id": "topP",
-							"type": "numstepper",
-							"label": "Select top P for output:",
-							"required": false,
-							"integer": false,
-							"min": 0,
-							"max": 1,
-							"stepsize": 0.05
-						},
-						{
-							"id": "text_topP",
-							"type": "text",
-							"text": "Similar to temperature, this controls how deterministic the model is. Lowering Top P will narrow the model’s token selection to likelier tokens. Increasing Top P will let the model choose from tokens with both high and low likelihood. Try adjusting temperature or Top P but not both.",
-							"visible": ""
-						},
-						{
-							"id": "maxTokens",
-							"type": "numstepper",
-							"label": "Select the max number of tokens for output:",
-							"required": false,
-							"integer": true,
-							"min": 1,
-							"max": null,
-							"stepsize": 1
-						},
-						{
-							"id": "text_maxTokens",
-							"type": "text",
-							"text": "Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.",
-							"visible": ""
-						},
-						{
-							"id": "frequencyPenalty",
-							"type": "numstepper",
-							"label": "Select the frequency penalty:",
-							"required": false,
-							"integer": false,
-							"min": -2,
-							"max": 2,
-							"stepsize": 0.05
-						},
-						{
-							"id": "text_frequencyPenalty",
-							"type": "text",
-							"text": "The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.",
-							"visible": ""
-						},
-						{
-							"id": "presencePenalty",
-							"type": "numstepper",
-							"label": "Select the presence penalty:",
-							"required": false,
-							"integer": false,
-							"min": -2,
-							"max": 2,
-							"stepsize": 0.05
-						},
-						{
-							"id": "text_presencePenalty",
-							"type": "text",
-							"text": "The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.",
-							"visible": ""
-						},
-						{
-							"id": "outputTable",
-							"type": "outputtable",
-							"label": "Provide output table:",
-							"required": true,
-							"placeholder": "",
-							"visible": ""
-						}
+                            "id": "temperature",
+                            "type": "numstepper",
+                            "label": "Select temperature for output:",
+                            "required": false,
+                            "integer": false,
+                            "min": 0,
+                            "max": 1,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_temperature",
+                            "type": "text",
+                            "text": "Use the temperature control to govern how the LLM generates its response based on next word prediction.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "topP",
+                            "type": "numstepper",
+                            "label": "Select top P for output:",
+                            "required": false,
+                            "integer": false,
+                            "min": 0,
+                            "max": 1,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_topP",
+                            "type": "text",
+                            "text": "Similar to temperature, this controls how deterministic the model is. Lowering Top P will narrow the model's token selection to likelier tokens. Increasing Top P will let the model choose from tokens with both high and low likelihood. Try adjusting temperature or Top P but not both.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "maxTokens",
+                            "type": "numstepper",
+                            "label": "Select the max number of tokens for output:",
+                            "required": false,
+                            "integer": true,
+                            "min": 1,
+                            "max": null,
+                            "stepsize": 1
+                        },
+                        {
+                            "id": "text_maxTokens",
+                            "type": "text",
+                            "text": "Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "frequencyPenalty",
+                            "type": "numstepper",
+                            "label": "Select the frequency penalty:",
+                            "required": false,
+                            "integer": false,
+                            "min": -2,
+                            "max": 2,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_frequencyPenalty",
+                            "type": "text",
+                            "text": "The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "presencePenalty",
+                            "type": "numstepper",
+                            "label": "Select the presence penalty:",
+                            "required": false,
+                            "integer": false,
+                            "min": -2,
+                            "max": 2,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_presencePenalty",
+                            "type": "text",
+                            "text": "The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "outputTable",
+                            "type": "outputtable",
+                            "label": "Provide output table:",
+                            "required": true,
+                            "placeholder": "",
+                            "visible": ""
+                        }
                     ]
                 }
             ]
@@ -405,7 +381,7 @@
                 {
                     "id": "version_text",
                     "type": "text",
-                    "text": "Version: 1.0  (13MAR2025)",
+                    "text": "Version: 1.0  (20MAR2025)",
                     "visible": ""
                 },
                 {
@@ -423,15 +399,13 @@
             "table": ""
         },
         "textCol": [],
-		"docId": [],
-		"copyVarList": [],
-		"_systemPrompt": "",
-		"userPrompt": "",
-		"temperature": null,
-		"topP": null,
-		"maxTokens": null, 
-		"frequencyPenalty": null,
-		"presencePenalty": null,
+        "_systemPrompt": "",
+        "userPrompt": "",
+        "temperature": null,
+        "topP": null,
+        "maxTokens": null,
+        "frequencyPenalty": null,
+        "presencePenalty": null,
         "outputTable": {
             "library": "",
             "table": ""
