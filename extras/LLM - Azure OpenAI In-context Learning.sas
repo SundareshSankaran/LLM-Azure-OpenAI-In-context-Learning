@@ -112,8 +112,36 @@ system_prompt = SAS.symget('_systemPrompt')
 text_col = SAS.symget('textCol')
 doc_id = SAS.symget('docId')
 user_prompt = SAS.symget('userPrompt')
-temperature = SAS.symget('temperature')
 user_example = SAS.symget('userExample')
+
+# Numeric Model parameters
+def convert_value(value, target_type):
+    """Convert non-empty strings to a specific type, else return None."""
+    return target_type(value) if value != '' else None
+
+# Model parameters (all strings initially)
+parameters = {
+    "temperature": SAS.symget('temperature'),
+    "max_tokens": SAS.symget('maxTokens'),
+    "top_p": SAS.symget('topP'),
+    "frequency_penalty": SAS.symget('frequencyPenalty'),
+    "presence_penalty": SAS.symget('presencePenalty')
+}
+
+# Type mapping for conversion
+type_mapping = {
+    "temperature": float,
+    "max_tokens": int,
+    "top_p": float,
+    "frequency_penalty": float,
+    "presence_penalty": float
+}
+
+# Apply conversions dynamically
+parameters = {k: convert_value(v, type_mapping[k]) for k, v in parameters.items()}
+
+# Unpack into variables
+temperature, max_tokens, top_p, frequency_penalty, presence_penalty = parameters.values()
 deployment_name = SAS.symget('genModelDeployment')
 azure_key = SAS.symget('azure_key')
 azure_openai_endpoint = SAS.symget('azureOpenAIEndpoint')
@@ -169,8 +197,9 @@ import pandas as pd
 import copy
 
 class SASAzureOpenAILLM():
-    def __init__(self,client = None, azure_openai_endpoint = None, deployment_name= None,azure_key = None,azure_openai_version = None,
-                temperature = 0.7):
+    def __init__(self,client = None, azure_openai_endpoint = None, deployment_name= None,azure_key = None,
+                 azure_openai_version = None, temperature = None, max_tokens = None, top_p = None, 
+                 frequency_penalty = None, presence_penalty = None):
         self.client = client
         self.azure_openai_endpoint = azure_openai_endpoint
         self.deployment_name = deployment_name
@@ -178,6 +207,10 @@ class SASAzureOpenAILLM():
         self.azure_openai_version = azure_openai_version
         self.prompt = []
         self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.top_p = top_p
+        self.frequency_penalty = frequency_penalty
+        self.presence_penalty = presence_penalty
 
     def set_client(self, azure_openai_endpoint = None, azure_key = None, azure_openai_version= None):
        if azure_openai_endpoint is None:
@@ -235,19 +268,23 @@ class SASAzureOpenAILLM():
     def get_prompt(self):
         return "".join((self.prompt[0]["content"], self.prompt[1]["content"]))
     
-    def get_response(self, context = None, client = None, deployment_name = None, prompt = None, temperature=None, system_prompt = None, user_prompt = None, example = None):
+    def get_response(self, context = None, client = None, deployment_name = None, prompt = None,
+                 system_prompt = None, user_prompt = None, example = None,temperature=None,
+                 max_tokens=None, top_p=None, frequency_penalty=None, presence_penalty=None):  
         # Generate new base prompt
         self.set_prompt(system_prompt, user_prompt, example)
+        
+        # Assign llm parameters
+        client = client if client is not None else self.client
+        deployment_name = deployment_name if deployment_name is not None else self.deployment_name
+        prompt = prompt if prompt is not None else self.prompt
+        temperature = temperature if temperature is not None else self.temperature
+        max_tokens = max_tokens if max_tokens is not None else self.max_tokens
+        top_p = top_p if top_p is not None else self.top_p
+        frequency_penalty = frequency_penalty if frequency_penalty is not None else self.frequency_penalty
+        presence_penalty = presence_penalty if presence_penalty is not None else self.presence_penalty
 
-        if client is None:
-            client = self.client
-        if deployment_name is None:
-            deployment_name = self.deployment_name
-        if prompt is None:
-            prompt = self.prompt
-        if temperature is None:
-            temperature = self.temperature
-        # if context is none, then do nothing
+        # Append context if available
         if context is None or len(context) == 0:
             print("No context provided")
             return ""
@@ -257,18 +294,23 @@ class SASAzureOpenAILLM():
                 model = deployment_name,
                 messages = prompt,
                 temperature = temperature,
+                max_tokens = max_tokens,
+                top_p = top_p,
+                frequency_penalty = frequency_penalty,
+                presence_penalty = presence_penalty
             )
         return completion.choices[0].message.content
         
-def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None): 
-   model = SASAzureOpenAILLM()
+def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None,
+            temperature = None, max_tokens = None, top_p = None, frequency_penalty = None, presence_penalty = None): 
+   model = SASAzureOpenAILLM(temperature=temperature, max_tokens=max_tokens, top_p=top_p, frequency_penalty=frequency_penalty, presence_penalty=presence_penalty)
    model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
-#   model.set_prompt(system_prompt=system_prompt, user_prompt=user_prompt, example=user_example)
    input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
    return input_data
 
 output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 
-                 user_prompt = user_prompt, example=user_example,input_data=input_data, deployment_name = deployment_name, text_col = text_col)
+                 user_prompt = user_prompt, example=user_example,input_data=input_data, deployment_name = deployment_name, text_col = text_col,
+                 temperature=temperature, max_tokens=max_tokens, top_p=top_p, frequency_penalty=frequency_penalty, presence_penalty=presence_penalty)
    
 
 # Check if output table is CAS
