@@ -7,14 +7,55 @@ Run inside a SAS session, this custom step takes either a SAS dataset or a CAS t
 
 ## A general idea
 
+Refer the following animated GIF for a general idea.
+
+![General idea](./img/LLM-In-context.gif)
+
+
 ----
 ## Table of Contents
+
+1. [Requirements](#requirements)
+2. [Parameters](#parameters)
+3. [Run-time Control](#run-time-control)
+4. [Documentation](#documentation)
+5. [SAS Program](#sas-program)
+6. [Contact](#createdcontact)
+7. [Change Log](#change-log)
 
 ----
 ## Requirements
 
+1. A SAS Viya 4 environment, version 2025.02 or later
+2. Python is configured and available to the SAS environment.
+3. The following Python packages need to be installed:
+    1. [OpenAI](https://pypi.org/project/openai/)
+    2. [Pandas](https://pypi.org/project/pandas/)
+    3. [Swat](https://pypi.org/project/swat/)
+4. Valid Azure OpenAI service with large language model deployed.  [Refer here for instructions](https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio) 
+
 -----
 ## Parameters
+
+### Input Parameters
+
+1. Input table (input port, required): Attach either a SAS dataset or a SAS Cloud Analytics Services (CAS) table to the input port of this step.
+2. Select text column (column selector, max 1): Select a column containing the context to be provided to the LLM
+3. System prompt (text area): Provide a system prompt for use by the LLM. The system prompt helps clarify the role that the LLM plays and is also used for other instructions such as how to answer the question and the format in which to present the results.
+4. User prompt (text area): Provide a user prompt which contains specific instructions to be fulfilled by the LLM.  In the user prompt, use fields like {Question} and {Context} to refer to the question or context provided.
+5. Illustrative examples (text area):  Provide some illustrative examples (the 'shots') which are used as a basis for the LLM to answer the question. Provide this in the form of "Question:" and "Answer:" pairs
+
+
+### Configuration
+1. Text generation model (text field): Provide the name of a Azure OpenAI model deployment.For convenience, you may choose to use the same name as the OpenAI LLM. Example, gpt-35-turbo to gpt-35-turbo.
+2. Azure Key Location (file selector): Provide path to your Azure OpenAI key, located on the filesystem.  This would be a text file containing the value of the key.  Make sure this is saved in a secure location.
+3. Azure OpenAI endpoint (text field): Provide the URL of the Azure OpenAI service.
+4. Azure OpenAI region (text field): Provide the region where the service is set up (e.g. eastus2)
+5. OpenAI version (default provided): Provide an OpenAI version number in case you want to override the default.
+
+### Output specifications
+1. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.
+2. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.
 
 -----
 ## Run-time Control
@@ -23,18 +64,18 @@ Note: Run-time control is optional.  You may choose whether to execute the main 
 Refer this blog (https://communities.sas.com/t5/SAS-Communities-Library/Switch-on-switch-off-run-time-control-of-SAS-Studio-Custom-Steps/ta-p/885526) for more details on the concept.
 The following macro variable,
 ```sas
-_azp_run_trigger
+_aicl_run_trigger
 ```
 will initialize with a value of 1 by default, indicating an 'enabled' status and allowing the custom step to run.
 If you wish to control execution of this custom step, include code in an upstream SAS program to set this variable to 0.  This 'disables' execution of the custom step.
 To 'disable' this step, run the following code upstream:
 ```sas
-%global _azp_run_trigger;
-%let _azp_run_trigger = 0;
+%global _aicl_run_trigger;
+%let _aicl_run_trigger = 0;
 ```
 To 'enable' this step again, run the following (it's assumed that this has already been set as a global variable):
 ```sas
-%let _azp_run_trigger = 1;
+%let _aicl_run_trigger = 1;
 ```
 
 IMPORTANT: Be aware that disabling this step means that none of its main execution code will run, and any  downstream code which was dependent on this code may fail.  Change this setting only if it aligns with the objective of your SAS Studio program.
@@ -42,16 +83,28 @@ IMPORTANT: Be aware that disabling this step means that none of its main executi
 -----
 ## Documentation
 
+1.  Azure OpenAI service: https://learn.microsoft.com/en-us/azure/ai-services/openai/
+
+2.  SAS Communities article on configuring Viya for Python integration: https://communities.sas.com/t5/SAS-Communities-Library/Configuring-SAS-Viya-for-Python-Integration/ta-p/847459
+
+3. The SAS Viya Platform Deployment Guide (refer to SAS Configurator for Open Source within): https://go.documentation.sas.com/doc/en/itopscdc/default/itopssr/p1n66p7u2cm8fjn13yeggzbxcqqg.htm?fromDefault=#p19cpvrrjw3lurn135ih46tjm7oi 
+
+4. OpenAI API versions change periodically. Keep track of them here: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
+
+5. For a quick overview of how to deploy an Azure OpenAI model, refer this [note](./extras/docs/How_to_create_AzureAI_Deployment.md).
+
+
 -----
 ## SAS Program
 
-Refer [here]() for the SAS program used by the step.  You'd find this useful for situations where you wish to execute this step through non-SAS Studio Custom Step interfaces such as the [SAS Extension for Visual Studio Code](https://github.com/sassoftware/vscode-sas-extension), with minor modifications.
+Refer [here](./extras/LLM%20-%20Azure%20OpenAI%20In-context%20Learning.sas) for the SAS program used by the step.  You'd find this useful for situations where you wish to execute this step through non-SAS Studio Custom Step interfaces such as the [SAS Extension for Visual Studio Code](https://github.com/sassoftware/vscode-sas-extension), with minor modifications.
 
 -----
 ## Installation & Usage
 
 - Refer to the [steps listed here](https://github.com/sassoftware/sas-studio-custom-steps#getting-started---making-a-custom-step-from-this-repository-available-in-sas-studio).
 ----
+
 ## Created/contact:
 
 - [Sundaresh Sankaran](sundaresh.sankaran@sas.com)
@@ -59,5 +112,5 @@ Refer [here]() for the SAS program used by the step.  You'd find this useful for
 
 ----
 ## Change Log
-* Version 1.0.0(17JAN2025)
+* Version 1.0.0(13MAR2025)
     - Initial version

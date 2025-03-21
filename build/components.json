@@ -33,37 +33,13 @@
                             "table": "inputData"
                         },
                         {
-                            "id": "docId",
-                            "type": "columnselector",
-                            "label": "Select ID column:",
-                            "include": null,
-                            "order": false,
-                            "columntype": "a",
-                            "max": null,
-                            "min": null,
-                            "visible": "",
-                            "table": "inputData"
-                        },
-                        {
-                            "id": "copyVarList",
-                            "type": "columnselector",
-                            "label": "Select additional columns to copy over:",
-                            "include": null,
-                            "order": false,
-                            "columntype": "a",
-                            "max": null,
-                            "min": null,
-                            "visible": "",
-                            "table": "inputData"
-                        },
-                        {
                             "id": "section_prompts",
                             "type": "section",
                             "label": "Prompts",
                             "open": true,
                             "children": [
                                 {
-                                    "id": "systemPrompt",
+                                    "id": "_systemPrompt",
                                     "type": "textarea",
                                     "label": "Provide system prompt:",
                                     "placeholder": "",
@@ -101,7 +77,7 @@
                                 {
                                     "id": "text_user_example",
                                     "type": "text",
-                                    "text": "Use the user example to provide 0, 1, or more illustrative examples of context and desired response from the LLM.",
+                                    "text": "Use the user example to provide 0, 1, or more illustrative examples of context and desired response from the LLM. Tag examples as Example: and Answer:.",
                                     "visible": ""
                                 }
                             ]
@@ -121,14 +97,78 @@
                             "label": "Select temperature for output:",
                             "required": false,
                             "integer": false,
-                            "min": null,
-                            "max": null,
-                            "stepsize": 1
+                            "min": 0,
+                            "max": 1,
+                            "stepsize": 0.05
                         },
                         {
                             "id": "text_temperature",
                             "type": "text",
                             "text": "Use the temperature control to govern how the LLM generates its response based on next word prediction.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "topP",
+                            "type": "numstepper",
+                            "label": "Select top P for output:",
+                            "required": false,
+                            "integer": false,
+                            "min": 0,
+                            "max": 1,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_topP",
+                            "type": "text",
+                            "text": "Similar to temperature, this controls how deterministic the model is. Lowering Top P will narrow the model's token selection to likelier tokens. Increasing Top P will let the model choose from tokens with both high and low likelihood. Try adjusting temperature or Top P but not both.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "maxTokens",
+                            "type": "numstepper",
+                            "label": "Select the max number of tokens for output:",
+                            "required": false,
+                            "integer": true,
+                            "min": 1,
+                            "max": null,
+                            "stepsize": 1
+                        },
+                        {
+                            "id": "text_maxTokens",
+                            "type": "text",
+                            "text": "Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "frequencyPenalty",
+                            "type": "numstepper",
+                            "label": "Select the frequency penalty:",
+                            "required": false,
+                            "integer": false,
+                            "min": -2,
+                            "max": 2,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_frequencyPenalty",
+                            "type": "text",
+                            "text": "The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.",
+                            "visible": ""
+                        },
+                        {
+                            "id": "presencePenalty",
+                            "type": "numstepper",
+                            "label": "Select the presence penalty:",
+                            "required": false,
+                            "integer": false,
+                            "min": -2,
+                            "max": 2,
+                            "stepsize": 0.05
+                        },
+                        {
+                            "id": "text_presencePenalty",
+                            "type": "text",
+                            "text": "The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.",
                             "visible": ""
                         },
                         {
@@ -221,7 +261,7 @@
                 {
                     "id": "about_description",
                     "type": "text",
-                    "text": "LLM - Azure OpenAI Zero-Shot Prompting==============================================This custom step helps you interact with a Large Language Model (LLM) interacting with an [Azure OpenAI](https://microsoftlearning.github.io/mslearn-openai/Instructions/Exercises/01-get-started-azure-openai.html) service to process simple instructions on specified input data. It uses a technique called zero-shot prompting which is useful for cases where the instruction provided to the LLM does not require additional detail or context.There exist both simple and involved (e.g. Retrieval Augmented Generation (RAG)) approaches for interacting with an LLM. Zero-shot prompting is useful for cases where the input data provides all the necessary context and information required for the LLM to process an instruction, and also, the instruction provided does not require a query to other data sources.Run inside a SAS session, this custom step takes either a SAS dataset or a CAS table as input and returns a SAS dataset (or CAS table) as output, with the response added as a new variable.",
+                    "text": "LLM - Azure OpenAI In-context Learning==============================================This custom step helps you interact with a Large Language Model (LLM) calling an [Azure OpenAI](https://microsoftlearning.github.io/mslearn-openai/Instructions/Exercises/01-get-started-azure-openai.html) service to process simple instructions on specified input data. It uses an approach called In-context learning which uses provided examples to perform a task.  If no example is provided, then the LLM simply uses the provided context.  This is useful for cases where a call to an LLM does not require prior search, filter or query of data sources (such as what Retrieval Augmented Generation provides) . Run inside a SAS session, this custom step takes either a SAS dataset or a CAS table as input and returns a SAS dataset (or CAS table) as output, with the response added as a new variable.",
                     "visible": ""
                 },
                 {
@@ -234,7 +274,7 @@
                         {
                             "id": "text_prereqs",
                             "type": "text",
-                            "text": "1. Python:  Python version 3.10 is recommended to avoid package support or dependency issues.\n\n2. Python packages to be installed:\n\n   i.    langchain: https://pypi.org/project/langchain/\n   ii.   langchain-community: https://pypi.org/project/langchain-community/\n   iii.  langchain-openai: https://pypi.org/project/langchain-openai/\n  iv.   PyPDF: https://pypi.org/project/pypdf/\n  v.    sentence-transformers: https://pypi.org/project/sentence-transformers/\n  vi.   chromadb: https://pypi.org/project/chromadb/\n  vii.  pysqlite-binary: https://pypi.org/project/pysqlite-binary/\n\n3. Viya 4 environment version 2024.01 or later\n\n4. Valid Azure OpenAI service with embedding & large language models deployed.  Refer here for instructions: https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio \n",
+                            "text": "1. Python is available to the SAS Viya Compute session.  2. Python packages to be installed:   i.  openai: https://pypi.org/project/openai/  ii.   pandas: https://pypi.org/project/pandas/  3. Viya 4 environment version 2025.01 or later 4. Valid Azure OpenAI service with large language models deployed.  Refer here for instructions: https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio",
                             "visible": ""
                         }
                     ]
@@ -249,7 +289,7 @@
                         {
                             "id": "text_assumptions",
                             "type": "text",
-                            "text": "Current assumptions for this initial versions (future versions may improve upon the same):\n\n1. Users  choose either an existing Chroma DB vector database collection or load PDF,  SAS dataset, pandas DataFrame or CSV files to an existing or new Chroma DB collection.\n\n2. Users may load all PDFs in a directory on the SAS Server (filesystem), or select a PDF/sas7bdat/DataFrame/CSV of their choice.\n\n3. The code assumes use of a Chroma DB vector store.  Users may choose to replace this with other supported vector stores.\n\n4. The code uses the langchain LLM framework.  \n\n5. PDFs (containing text), CSV, SAS datasets and pandas DataFrames are currently the only loadable file format allowed.  Users are however free to ingest various other document types into a Chroma DB collection beforehand, using the \"Vector Databases - Hydrate Chroma DB collection\" SAS Studio Custom Step (refer documentation)\n\n6. User has already configured Azure OpenAI to deploy both an embedding function and LLM service, or knows the deployment names. \n",
+                            "text": "Current assumptions for this initial versions (future versions may improve upon the same):1. Users  choose either a SAS dataset or Cloud Analytics Services (CAS) table as their input 2. User has already configured Azure OpenAI to deploy both an embedding function and LLM service, or knows the deployment names.",
                             "visible": ""
                         }
                     ]
@@ -271,7 +311,7 @@
                                 {
                                     "id": "input_parameters_text",
                                     "type": "text",
-                                    "text": "1. Source file location (optional, default is Context already loaded): in case you wish to present new source files to use as context,  choose either selecting a folder, file,SAS dataset. pandas DataFrame or a CSV file. Otherwise, provide the name of an existing vector store collection in Configuration.  Note that if choosing a SAS dataset, you must open an input port and attach a table to the custom step.\n\n2. Source column ( required if SAS dataset, DataFrame or CSV selected): in case a SAS dataset, pandas DataFrame or a CSV file's selected, users must specify a column within the data source as the main \"document\" source.  The other fields will be considered metadata.\n\n3. System prompt (text area, default provided, required): a default system prompt which instructs the LLM on how to handle the question is provided.  Note it makes use of template variables {context} and {question} referring to the context and question respectively.  Edit this system prompt if you'd like to change the style of the response.\n\n4. Question (text area, required): Provide your question to the LLM. Note that this will be added to additional system prompt, to create a prompt that will be passed to the LLM.",
+                                    "text": "1. Input table (input port, required): Attach either a SAS dataset or a SAS Cloud Analytics Services (CAS) table to the input port of this step.\n2. Select text column (column selector, max 1): Select a column containing the context to be provided to the LLM\n3. System prompt (text area): Provide a system prompt for use by the LLM. The system prompt helps clarify the role that the LLM plays and is also used for other instructions such as how to answer the question and the format in which to present the results.\n4. User prompt (text area): Provide a user prompt which contains specific instructions to be fulfilled by the LLM.  In the user prompt, use fields like {Question} and {Context} to refer to the question or context provided.\n5. Illustrative examples (text area):  Provide some illustrative examples (the 'shots') which are used as a basis for the LLM to answer the question. Provide this in the form of \"Question:\" and \"Answer:\" pairs",
                                     "visible": ""
                                 }
                             ]
@@ -286,7 +326,7 @@
                                 {
                                     "id": "output_parameters_text",
                                     "type": "text",
-                                    "text": "Results (the answer from the LLM) are printed by default to the output window.\n\n1. Temperature (numeric stepper, default 0): temperature for an LLM affects its abiity to predict the next word when generating responses.  A rule of thumb is that a temperature closer to 0 indicates the model uses the predicted next word with the highest probability, whereas a temperature of 1 increases the randomness with which the model predicts the next word.  \n\n2. Context size (numeric stepper, default 10): select how many similar results from the vector store should be retrieved and provided as context to the LLM.  Note that a higher number results in more tokens provided as part of the prompt.\n\n3. Output table (output port, option): attach either a CAS table or sas7bdat to the output port of this node to hold results.  These results contain the LLM's answer, the original question and supporting retrieved results.  ",
+                                    "text": "1. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.\n2. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.",
                                     "visible": ""
                                 }
                             ]
@@ -301,7 +341,7 @@
                                 {
                                     "id": "output_parameters_text_1",
                                     "type": "text",
-                                    "text": "1. Embedding model (text field, required):  provide the name of your Azure OpenAI deployment of an OpenAI embedding model. For convenience, it's suggested to use the same name as the model you wish to use. For example, if your OpenAI embedding model happens to be text-embedding-3-small, use the same name for your deployment. \n\n2. Vector Store persistent path (text field, defaults to /tmp if blank): provide a path to a ChromaDB database.  If blank, this defaults to /tmp on the filesystem. \n\n3. Chroma DB collection name (text field): provide name of the Chroma DB collection you wish to use.  If the collection does not exist, a new one will be created. Ensure you have write access to the persistent area.\n\n4. Text generation model (text field, required): provide the name of an Azure OpenAI text generation deployment.  For convenience, you may choose to use the same name as the OpenAI LLM. Example, gpt-35-turbo to gpt-35-turbo.\n\n5. Azure OpenAI service details (file selector for key and text fields, required): provide a path to your Azure OpenAI access key.  Ensure this key is saved within a text file in a secure location on the filesystem.  Users are responsible for providing their keys to use this service.  In addition, also refer to your Azure OpenAI service to obtain the service endpoint and region. The OpenAI API version can be changed if required.",
+                                    "text": "1. Text generation model (text field): Provide the name of a Azure OpenAI model deployment.For convenience, you may choose to use the same name as the OpenAI LLM. Example, gpt-35-turbo to gpt-35-turbo.\n2. Azure Key Location (file selector): Provide path to your Azure OpenAI key, located on the filesystem.  This would be a text file containing the value of the key.  Make sure this is saved in a secure location.\n3. Azure OpenAI endpoint (text field): Provide the URL of the Azure OpenAI service.\n4. Azure OpenAI region (text field): Provide the region where the service is set up (e.g. eastus2)\n5. OpenAI version (default provided): Provide an OpenAI version number in case you want to override the default.",
                                     "visible": ""
                                 }
                             ]
@@ -318,7 +358,7 @@
                         {
                             "id": "runtimecontrol_text",
                             "type": "text",
-                            "text": "Note: Run-time control is optional.  You may choose whether to execute the main code of this step or not, based on upstream conditions set by earlier SAS programs.  This includes nodes run prior to this custom step earlier in a SAS Studio Flow, or a previous program in the same session.\n\nRefer this blog (https://communities.sas.com/t5/SAS-Communities-Library/Switch-on-switch-off-run-time-control-of-SAS-Studio-Custom-Steps/ta-p/885526) for more details on the concept.\n\nThe following macro variable,\n\n_aor_run_trigger\n\nwill initialize with a value of 1 by default, indicating an \"enabled\" status and allowing the custom step to run.\n\nIf you wish to control execution of this custom step, include code in an upstream SAS program to set this variable to 0.  This \"disables\" execution of the custom step.\n\nTo \"disable\" this step, run the following code upstream:\n\n%global _aor_run_trigger;\n%let _aor_run_trigger =0;\n\nTo \"enable\" this step again, run the following (it's assumed that this has already been set as a global variable):\n\n%let _aor_run_trigger =1;\n\nIMPORTANT: Be aware that disabling this step means that none of its main execution code will run, and any  downstream code which was dependent on this code may fail.  Change this setting only if it aligns with the objective of your SAS Studio program.",
+                            "text": "Note: Run-time control is optional.  You may choose whether to execute the main code of this step or not, based on upstream conditions set by earlier SAS programs.  This includes nodes run prior to this custom step earlier in a SAS Studio Flow, or a previous program in the same session.\n\nRefer this blog (https://communities.sas.com/t5/SAS-Communities-Library/Switch-on-switch-off-run-time-control-of-SAS-Studio-Custom-Steps/ta-p/885526) for more details on the concept.\nThe following macro variable,\n```sas\n_aicl_run_trigger\n```\nwill initialize with a value of 1 by default, indicating an 'enabled' status and allowing the custom step to run.\nIf you wish to control execution of this custom step, include code in an upstream SAS program to set this variable to 0.  This 'disables' execution of the custom step.\nTo 'disable' this step, run the following code upstream:\n```sas\n%global _aicl_run_trigger;\n%let _aicl_run_trigger = 0;\n```\nTo 'enable' this step again, run the following (it's assumed that this has already been set as a global variable):\n```sas\n%let _aicl_run_trigger = 1;\n```\n\nIMPORTANT: Be aware that disabling this step means that none of its main execution code will run, and any  downstream code which was dependent on this code may fail.  Change this setting only if it aligns with the objective of your SAS Studio program.",
                             "visible": ""
                         }
                     ]
@@ -333,7 +373,7 @@
                         {
                             "id": "documentation_text",
                             "type": "text",
-                            "text": "1.  Azure OpenAI service: https://learn.microsoft.com/en-us/azure/ai-services/openai/\n\n2. Documentation for the chromadb Python package: https://docs.trychroma.com\n\n3.  Documentation for the \"Vector Databases - Hydrate Chroma DB collection\" SAS Studio Custom Step: https://github.com/sassoftware/sas-studio-custom-steps/tree/main/Vector%20Databases%20-%20Hydrate%20Chroma%20DB%20Collection\n\n4. An important note regarding sqlite: https://docs.trychroma.com/troubleshooting#sqlite\n\n5. SAS Communities article on configuring Viya for Python integration: https://communities.sas.com/t5/SAS-Communities-Library/Configuring-SAS-Viya-for-Python-Integration/ta-p/847459\n\n6. The SAS Viya Platform Deployment Guide (refer to SAS Configurator for Open Source within): https://go.documentation.sas.com/doc/en/itopscdc/default/itopssr/p1n66p7u2cm8fjn13yeggzbxcqqg.htm?fromDefault=#p19cpvrrjw3lurn135ih46tjm7oi \n\n7.  Options for persistent clients and client connections in Chroma: https://docs.trychroma.com/usage-guide\n\n8. Langchain Python documentation: https://python.langchain.com/docs/get_started/introduction\n\n9. OpenAI API versions change periodically. Keep track of them here: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation",
+                            "text": "1.  Azure OpenAI service: https://learn.microsoft.com/en-us/azure/ai-services/openai/\n2.  SAS Communities article on configuring Viya for Python integration: https://communities.sas.com/t5/SAS-Communities-Library/Configuring-SAS-Viya-for-Python-Integration/ta-p/847459\n3. The SAS Viya Platform Deployment Guide (refer to SAS Configurator for Open Source within): https://go.documentation.sas.com/doc/en/itopscdc/default/itopssr/p1n66p7u2cm8fjn13yeggzbxcqqg.htm?fromDefault=#p19cpvrrjw3lurn135ih46tjm7oi \n4. OpenAI API versions change periodically. Keep track of them here: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation",
                             "visible": ""
                         }
                     ]
@@ -341,15 +381,13 @@
                 {
                     "id": "version_text",
                     "type": "text",
-
-                    "text": "Version: 1.0  (31JAN2025)",
-
+                    "text": "Version: 1.0  (20MAR2025)",
                     "visible": ""
                 },
                 {
                     "id": "contact_text",
                     "type": "text",
-                    "text": "Created/contact: \n\n- Sundaresh Sankaran (sundaresh.sankaran@sas.com)\n",
+                    "text": "Created/contact: \n- Sundaresh Sankaran (sundaresh.sankaran@sas.com) \n- Crystal Baker (crystal.baker@sas.com)",
                     "visible": ""
                 }
             ]
@@ -361,11 +399,13 @@
             "table": ""
         },
         "textCol": [],
-        "docId": [],
-        "copyVarList": [],
-        "systemPrompt": "",
+        "_systemPrompt": "",
         "userPrompt": "",
         "temperature": null,
+        "topP": null,
+        "maxTokens": null,
+        "frequencyPenalty": null,
+        "presencePenalty": null,
         "outputTable": {
             "library": "",
             "table": ""
