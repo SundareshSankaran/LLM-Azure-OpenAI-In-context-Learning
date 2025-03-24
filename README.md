@@ -1,4 +1,4 @@
-# LLM - Azure OpenAI Zero-Shot Prompting
+# LLM - Azure OpenAI In-context Learning
 This custom step helps you interact with a Large Language Model (LLM) interacting with an [Azure OpenAI](https://microsoftlearning.github.io/mslearn-openai/Instructions/Exercises/01-get-started-azure-openai.html) service to process simple instructions on specified input data. It uses a technique called zero-shot prompting which is useful for cases where the instruction provided to the LLM does not require additional detail or context.  
 
 There exist both simple and involved (e.g. Retrieval Augmented Generation (RAG)) approaches for interacting with an LLM. Zero-shot prompting is useful for cases where the input data provides all the necessary context and information required for the LLM to process an instruction, and also, the instruction provided does not require a query to other data sources.  
@@ -55,7 +55,14 @@ Refer the following animated GIF for a general idea.
 
 ### Output specifications
 1. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.
-2. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.
+    1. Recommendation: Try adjusting Temperature or Top p, but not both.
+2. Top P (numeric stepper): Use the top p control to govern randomness using nucleus sampling.  
+    1. Recommendation: Try adjusting Temperature or Top p, but not both.
+3. Max Tokens (numeric stepper): Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.
+4. Frequency Penalty (numeric stepper): The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.
+5. Presence Penalty (numeric stepper): The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.
+6. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.
+
 
 -----
 ## Run-time Control
@@ -112,5 +119,5 @@ Refer [here](./extras/LLM%20-%20Azure%20OpenAI%20In-context%20Learning.sas) for 
 
 ----
 ## Change Log
-* Version 1.0.0(13MAR2025)
+* Version 1.0.0(24MAR2025)
     - Initial version
