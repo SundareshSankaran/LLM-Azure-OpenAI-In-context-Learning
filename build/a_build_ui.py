@@ -17,6 +17,9 @@ cs = CustomStep(type="code",createdBy=createdBy,
 with open(os.path.join(os.getcwd(),"components.json"),"r") as f:
     js = json.load(f)
 
+with open(os.path.join(os.getcwd(),"..","extras",f"{name}.json"),"r") as f:
+    js = json.load(f)
+
 jsd = json.dumps(js)
 
 cs["ui"]=jsd
