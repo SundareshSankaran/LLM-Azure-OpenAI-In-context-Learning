@@ -4,12 +4,12 @@ import pandas
 
 from datetime import datetime
 
-modifiedBy="Crystal Baker"
+modifiedBy="Sundaresh Sankaran"
 
 from py_sas_studio_custom_steps import CustomStep
 
 createdBy="Sundaresh Sankaran and Crystal Baker"
-modifiedBy="Crystal Baker"
+
 name= "LLM - Azure OpenAI In-context Learning"
 
 
@@ -119,5 +119,8 @@ cs.create_custom_step(custom_step_path= os.path.join(os.getcwd(),"..",f"{name}.s
 
 # Replace the existing components.json file with js
 components_json_path = os.path.join(os.getcwd(), "components.json")
+with open(components_json_path, 'w') as f:
+    json.dump(js, f, indent=4)
+components_json_path = os.path.join(os.getcwd(),"..","extras", f"{name}.json")
 with open(components_json_path, 'w') as f:
     json.dump(js, f, indent=4)

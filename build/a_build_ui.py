@@ -4,14 +4,14 @@ from py_sas_studio_custom_steps import CustomStep
 from datetime import datetime
 
 createdBy="Sundaresh Sankaran and Crystal Baker"
-modifiedBy="Crystal Baker"
+modifiedBy="Sundaresh Sankaran"
 name= "LLM - Azure OpenAI In-context Learning"
 
 cs = CustomStep(type="code",createdBy=createdBy, 
               name=name,
               displayName=name,
               creationTimeStamp=datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-              modifiedBy="Crystal Baker",
+              modifiedBy=modifiedBy,
               modifiedTimeStamp=datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
 with open(os.path.join(os.getcwd(),"components.json"),"r") as f:
