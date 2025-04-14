@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
    
-   v 1.0.0 (24MAR2025)
+   v 1.1.0 (07APR2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
    instructions on specified input data and is designed to run within a SAS Studio Custom 
@@ -45,6 +45,7 @@ data _null_;
    call symput('azureOpenAIEndpoint', "%sysget(azureOpenAIEndpoint)");
    call symput('azureRegion', "%sysget(azureRegion)");
    call symput('openAIVersion', "%sysget(openAIVersion)");
+   call symput('add_q_y_n', "%sysget(add_q_y_n)");
    call symput('outputTable', "%sysget(outputTable)");
    call symput('genModelDeployment', "%sysget(genModelDeployment)");
    call symputx('temperature', %sysget(temperature));
@@ -107,6 +108,7 @@ output_table = SAS.symget('outputTable')
 input_data_lib = SAS.symget('inputData_lib')
 output_table_lib = SAS.symget('outputTable_lib')
 input_data_name = SAS.symget('inputData_name')
+add_q_y_n = int(SAS.symget('add_q_y_n'))
 output_table_name = SAS.symget('outputTable_name')
 system_prompt = SAS.symget('_systemPrompt')
 text_col = SAS.symget('textCol')
@@ -306,6 +308,8 @@ def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=Non
    model = SASAzureOpenAILLM(temperature=temperature, max_tokens=max_tokens, top_p=top_p, frequency_penalty=frequency_penalty, presence_penalty=presence_penalty)
    model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
    input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
+   if add_q_y_n == 1:
+      input_data["Question"] = user_prompt
    return input_data
 
 output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 

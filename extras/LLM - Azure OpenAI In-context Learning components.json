@@ -92,6 +92,11 @@
 					"visible": "",
 					"children": [
 						{
+							"id": "add_q_y_n",
+							"type": "checkbox",
+							"label": "Add Question to output"
+						},
+						{
 							"id": "temperature",
 							"type": "numstepper",
 							"label": "Select temperature for output:",
@@ -261,7 +266,7 @@
 				{
 					"id": "about_description",
 					"type": "text",
-					"text": "LLM - Azure OpenAI In-context Learning==============================================This custom step helps you interact with a Large Language Model (LLM) calling an [Azure OpenAI](https://microsoftlearning.github.io/mslearn-openai/Instructions/Exercises/01-get-started-azure-openai.html) service to process simple instructions on specified input data. It uses an approach called In-context learning which uses provided examples to perform a task.  If no example is provided, then the LLM simply uses the provided context.  This is useful for cases where a call to an LLM does not require prior search, filter or query of data sources (such as what Retrieval Augmented Generation provides) . Run inside a SAS session, this custom step takes either a SAS dataset or a CAS table as input and returns a SAS dataset (or CAS table) as output, with the response added as a new variable.",
+					"text": "LLM - Azure OpenAI In-context Learning\n============================\nThis custom step helps you interact with a Large Language Model (LLM) calling an [Azure OpenAI](https://microsoftlearning.github.io/mslearn-openai/Instructions/Exercises/01-get-started-azure-openai.html) service to process simple instructions on specified input data. It uses an approach called In-context learning which uses provided examples to perform a task.  If no example is provided, then the LLM simply uses the provided context.  This is useful for cases where a call to an LLM does not require prior search, filter or query of data sources (such as what Retrieval Augmented Generation provides) . Run inside a SAS session, this custom step takes either a SAS dataset or a CAS table as input and returns a SAS dataset (or CAS table) as output, with the response added as a new variable.",
 					"visible": ""
 				},
 				{
@@ -311,7 +316,7 @@
 								{
 									"id": "output_parameters_text",
 									"type": "text",
-									"text": "1. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.\n     i. Recommendation: Try adjusting Temperature or Top p, but not both.\n2. Top P (numeric stepper): Use the top p control to govern randomness using nucleus sampling.  \n    i. Recommendation: Try adjusting Temperature or Top p, but not both.\n3. Max Tokens (numeric stepper): Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.\n4. Frequency Penalty (numeric stepper): The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.\n5. Presence Penalty (numeric stepper): The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.\n6. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.",
+									"text": "1. Add Question to output (checkbox): select / unselect as per choice\n\n2. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.  Recommendation: Try adjusting Temperature or Top p, but not both.\n\n3. Top P (numeric stepper): Use the top p control to govern randomness using nucleus sampling. Recommendation: Try adjusting Temperature or Top p, but not both.\n\n4. Max Tokens (numeric stepper): Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.\n\n5. Frequency Penalty (numeric stepper): The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.\n\n6. Presence Penalty (numeric stepper): The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.\n\n7. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.",
 									"visible": "",
 									"indent": 0
 								}
@@ -382,7 +387,7 @@
 				{
 					"id": "version_text",
 					"type": "text",
-					"text": "Version: 1.0  (24MAR2025)",
+					"text": "Version: 1.1.0  (07APR2025)",
 					"visible": ""
 				},
 				{
@@ -394,6 +399,7 @@
 			]
 		}
 	],
+	"syntaxversion": "1.3.0",
 	"values": {
 		"inputData": {
 			"library": "",
@@ -402,6 +408,7 @@
 		"textCol": [],
 		"_systemPrompt": "",
 		"userPrompt": "",
+		"add_q_y_n": true,
 		"temperature": null,
 		"topP": null,
 		"maxTokens": null,
