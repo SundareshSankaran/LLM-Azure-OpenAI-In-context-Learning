@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
    
-   v 1.1.0 (07APR2025)
+   v 1.2.0 (15APR2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
    instructions on specified input data and is designed to run within a SAS Studio Custom 
@@ -49,6 +49,8 @@ data _null_;
    call symput('outputTable', "%sysget(outputTable)");
    call symput('genModelDeployment', "%sysget(genModelDeployment)");
    call symputx('temperature', %sysget(temperature));
+   call symputx('questionHeader', %sysget(questionHeader));
+   call symputx('answerHeader', %sysget(answerHeader));
 run;
 
 data _null_;
@@ -115,6 +117,11 @@ text_col = SAS.symget('textCol')
 doc_id = SAS.symget('docId')
 user_prompt = SAS.symget('userPrompt')
 user_example = SAS.symget('userExample')
+question_header = SAS.symget('questionHeader')
+answer_header = SAS.symget('answerHeader')
+
+question_header = question_header if question_header else "Question"
+answer_header = answer_header if answer_header else "Response"
 
 # Numeric Model parameters
 def convert_value(value, target_type):
@@ -304,12 +311,14 @@ class SASAzureOpenAILLM():
         return completion.choices[0].message.content
         
 def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None,
-            temperature = None, max_tokens = None, top_p = None, frequency_penalty = None, presence_penalty = None): 
+            temperature = None, max_tokens = None, top_p = None, frequency_penalty = None, presence_penalty = None, question_header = question_header, answer_header = answer_header): 
    model = SASAzureOpenAILLM(temperature=temperature, max_tokens=max_tokens, top_p=top_p, frequency_penalty=frequency_penalty, presence_penalty=presence_penalty)
    model.set_client(azure_openai_endpoint, azure_key, azure_openai_version)
-   input_data["response"] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
+   answer_header = answer_header if answer_header is not None else "Response"
+   input_data[answer_header] = input_data[text_col].apply(model.get_response, deployment_name=deployment_name, system_prompt=system_prompt, user_prompt=user_prompt, example=example) 
    if add_q_y_n == 1:
-      input_data["Question"] = user_prompt
+      question_header = question_header if question_header is not None else "Question"
+      input_data[question_header] = user_prompt
    return input_data
 
 output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 

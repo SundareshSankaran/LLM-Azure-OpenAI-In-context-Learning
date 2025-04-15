@@ -55,14 +55,16 @@ Refer the following animated GIF for a general idea.
 
 ### Output specification
 1. Add Question to output (checkbox): select / unselect as per choice
-2. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.
+2. Provide a column name for Question field (text field, default Question): provide a name if you want to add the question as part of output.
+3. Provide a column name for Answer field (text field, default Response): provide a name if you want to rename the Response(answer) field.
+4. Temperature (numeric stepper): Use the temperature control to govern how the LLM generates its response based on next word prediction.
     - Recommendation: Try adjusting Temperature or Top p, but not both.
-3. Top P (numeric stepper): Use the top p control to govern randomness using nucleus sampling.  
+5. Top P (numeric stepper): Use the top p control to govern randomness using nucleus sampling.  
     - Recommendation: Try adjusting Temperature or Top p, but not both.
-4. Max Tokens (numeric stepper): Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.
-5. Frequency Penalty (numeric stepper): The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.
-6. Presence Penalty (numeric stepper): The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.
-7. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.
+6. Max Tokens (numeric stepper): Use the max token control to limit the maximum number of tokens per the response. 1 token is approximately 4 characters of English text.
+7. Frequency Penalty (numeric stepper): The frequency penalty reduces the likelihood of repeating words by applying a penalty to tokens based on how often they have already appeared in the text. A higher frequency penalty decreases repetition by discouraging the model from generating the same words multiple times.
+8. Presence Penalty (numeric stepper): The presence penalty reduces the chance of repeating any word that has already appeared in the text, encouraging the model to introduce new topics. Unlike the frequency penalty, it applies a uniform penalty to all repeated tokens, regardless of how often they appear.
+9. Output table (output port, required) : Attach a table referring to either a SAS dataset or CAS table which contains the original input columns along with the LLM's answer.
 
 
 -----
@@ -120,5 +122,5 @@ Refer [here](./extras/LLM%20-%20Azure%20OpenAI%20In-context%20Learning.sas) for 
 
 ----
 ## Change Log
-* Version 1.1.0(07APR2025)
-    - Initial version
+* Version 1.2.0(15APR2025)
+    - Questions and Response column names are editable
