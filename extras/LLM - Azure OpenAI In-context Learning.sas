@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------------------------* 
    LLM - Azure OpenAI In-context Learning
    
-   v 1.2.1 (27APR2025)
+   v 1.2.1 (11MAY2025)
 
    This program interacts with an Azure OpenAI Large Language Model (LLM) service to process 
    instructions on specified input data and is designed to run within a SAS Studio Custom 
@@ -203,6 +203,7 @@ else:
 import os
 from openai import AzureOpenAI
 import pandas as pd
+import numpy as np
 import copy
 
 class SASAzureOpenAILLM():
@@ -273,32 +274,68 @@ class SASAzureOpenAILLM():
                  "content": f"{user_prompt}\nExample(s): {example}\n"
              }
              ]
+    def set_prompt(self, system_prompt = None, user_prompt = None, example = None, context=None):
+        if system_prompt == None: 
+            system_prompt = "You are a helpful assistant. Using the provided context, respond with the answer only."
+        if user_prompt == None:
+            user_prompt = "Echo the context."
+        if context is None:
+            context = "No context provided."
+        if example is None:
+             self.prompt = [
+             {
+                 "role": "system",
+                 "content": system_prompt
+             },
+             {
+                 "role": "user",
+                 "content": f"{user_prompt}\nContext: {context}" 
+             }
+             ]
+        else:
+             self.prompt = [
+             {
+                 "role": "system",
+                 "content": system_prompt
+             },
+             {
+                 "role": "user",
+                 "content": f"{user_prompt}\nExample(s): {example}\nContext: {context}"
+             }
+             ]
     
     def get_prompt(self):
         return "".join((self.prompt[0]["content"], self.prompt[1]["content"]))
     
     def get_response(self, context = None, client = None, deployment_name = None, prompt = None,
                  system_prompt = None, user_prompt = None, example = None,temperature=None,
-                 max_tokens=None, top_p=None, frequency_penalty=None, presence_penalty=None):  
-        # Generate new base prompt
-        self.set_prompt(system_prompt, user_prompt, example)
+                 max_tokens=None, top_p=None, frequency_penalty=None, presence_penalty=None):
         
-        # Assign llm parameters
-        client = client if client is not None else self.client
-        deployment_name = deployment_name if deployment_name is not None else self.deployment_name
-        prompt = prompt if prompt is not None else self.prompt
-        temperature = temperature if temperature is not None else self.temperature
-        max_tokens = max_tokens if max_tokens is not None else self.max_tokens
-        top_p = top_p if top_p is not None else self.top_p
-        frequency_penalty = frequency_penalty if frequency_penalty is not None else self.frequency_penalty
-        presence_penalty = presence_penalty if presence_penalty is not None else self.presence_penalty
-
-        # Append context if available
-        if context is None or len(context) == 0:
+        # Return blank if no context is provided
+        if type(context) == float:
+              if np.isnan(context):
+                   print("No context provided")
+                   return ""
+        elif context is None or len(str(context)) == 0:
             print("No context provided")
             return ""
         else: 
-            prompt[1]["content"] = prompt[1]["content"] + f"Context: {context}"
+            # Generate prompt
+            self.set_prompt(system_prompt, user_prompt, example, context)
+            SAS.logMessage("Context Found: ")
+            SAS.logMessage(str(context))
+            
+            # Assign llm parameters
+            client = client if client is not None else self.client
+            deployment_name = deployment_name if deployment_name is not None else self.deployment_name
+            prompt = prompt if prompt is not None else self.prompt
+            temperature = temperature if temperature is not None else self.temperature
+            max_tokens = max_tokens if max_tokens is not None else self.max_tokens
+            top_p = top_p if top_p is not None else self.top_p
+            frequency_penalty = frequency_penalty if frequency_penalty is not None else self.frequency_penalty
+            presence_penalty = presence_penalty if presence_penalty is not None else self.presence_penalty
+
+            # Append context if available
             completion = client.chat.completions.create(
                 model = deployment_name,
                 messages = prompt,
@@ -308,7 +345,7 @@ class SASAzureOpenAILLM():
                 frequency_penalty = frequency_penalty,
                 presence_penalty = presence_penalty
             )
-        return completion.choices[0].message.content
+            return completion.choices[0].message.content
         
 def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=None, system_prompt=None, user_prompt=None, example=None, input_data=None, deployment_name = None, text_col=None,
             temperature = None, max_tokens = None, top_p = None, frequency_penalty = None, presence_penalty = None, question_header = question_header, answer_header = answer_header): 
@@ -320,6 +357,7 @@ def execute(azure_openai_endpoint=None, azure_key=None, azure_openai_version=Non
       question_header = question_header if question_header is not None else "Question"
       input_data[question_header] = user_prompt
    return input_data
+
 
 output_df = execute(azure_openai_endpoint=azure_openai_endpoint,azure_key = azure_key, azure_openai_version=azure_openai_version, system_prompt=system_prompt, 
                  user_prompt = user_prompt, example=user_example,input_data=input_data, deployment_name = deployment_name, text_col = text_col,
