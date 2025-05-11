@@ -29,7 +29,8 @@ Refer the following animated GIF for a general idea.
 3. The following Python packages need to be installed:
     1. [OpenAI](https://pypi.org/project/openai/)
     2. [Pandas](https://pypi.org/project/pandas/)
-    3. [Swat](https://pypi.org/project/swat/)
+    3. [Numpy](https://pypi.org/project/numpy)
+    4. [Swat](https://pypi.org/project/swat/)
 4. Valid Azure OpenAI service with large language model deployed.  [Refer here for instructions](https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio) 
 
 -----
@@ -120,5 +121,5 @@ Refer [here](./extras/LLM%20-%20Azure%20OpenAI%20In-context%20Learning.sas) for 
 
 ----
 ## Change Log
-* Version 1.2.1(27APR2025)
+* Version 1.2.1(11MAY2025)
     - README changed to reflect In-context Learning definition

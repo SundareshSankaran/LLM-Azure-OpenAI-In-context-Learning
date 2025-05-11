@@ -304,7 +304,7 @@
 						{
 							"id": "text_prereqs",
 							"type": "text",
-							"text": "1. Python is available to the SAS Viya Compute session.  \n2. Python packages to be installed:\n     i.  openai: https://pypi.org/project/openai/\n     ii.  pandas: https://pypi.org/project/pandas/\n3. Viya 4 environment version 2025.01 or later \n4. Valid Azure OpenAI service with large language models deployed.  Refer here for instructions: https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio",
+							"text": "1. Python is available to the SAS Viya Compute session.  \n2. Python packages to be installed:\n     i.  openai: https://pypi.org/project/openai/\n     ii.  pandas: https://pypi.org/project/pandas/\n     iii.  numpy: https://pypi.org/project/numpy/\n3. Viya 4 environment version 2025.01 or later \n4. Valid Azure OpenAI service with large language models deployed.  Refer here for instructions: https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-studio",
 							"visible": ""
 						}
 					]
@@ -412,7 +412,7 @@
 				{
 					"id": "version_text",
 					"type": "text",
-					"text": "Version: 1.2.0  (15APR2025)",
+					"text": "Version: 1.2.1  (11MAY2025)",
 					"visible": ""
 				},
 				{
